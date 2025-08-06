@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackjack Practice - Master Your Game</title>
+    <meta name="description" content="Practice blackjack online with our comprehensive training platform. Learn basic strategy, card counting, and improve your game.">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-logo">
+                    <h1>BlackjackPro</h1>
+                </div>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="index.html" class="nav-link active">Game</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="strategy-guide.html" class="nav-link">Strategy Guide</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="card-counting.html" class="nav-link">Card Counting</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="about.html" class="nav-link">About</a>
+                    </li>
+                </ul>
+                <div class="hamburger">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <!-- Game Statistics Panel -->
+        <aside class="stats-panel">
+            <div class="stats-card">
+                <h3>Session Stats</h3>
+                <div class="stat-item">
+                    <span class="stat-label">Hands Played:</span>
+                    <span class="stat-value" id="hands-played">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Wins:</span>
+                    <span class="stat-value" id="wins">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Win Rate:</span>
+                    <span class="stat-value" id="win-rate">0%</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Bank:</span>
+                    <span class="stat-value" id="bank">$1000</span>
+                </div>
+            </div>
+            
+            <div class="stats-card">
+                <h3>Card Count</h3>
+                <div class="stat-item">
+                    <span class="stat-label">Running Count:</span>
+                    <span class="stat-value" id="running-count">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">True Count:</span>
+                    <span class="stat-value" id="true-count">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Decks Remaining:</span>
+                    <span class="stat-value" id="decks-remaining">6</span>
+                </div>
+            </div>
+            
+            <div class="stats-card">
+                <h3>Strategy Performance</h3>
+                <div class="stat-item">
+                    <span class="stat-label">Accuracy:</span>
+                    <span class="stat-value" id="strategy-accuracy">0%</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Grade:</span>
+                    <span class="stat-value" id="strategy-grade">N/A</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Decisions:</span>
+                    <span class="stat-value" id="total-decisions">0</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Game Table -->
+        <section class="game-table">
+            <div class="table-container">
+                <!-- Dealer Section -->
+                <div class="dealer-section">
+                    <div class="dealer-label">Dealer</div>
+                    <div class="dealer-cards" id="dealer-cards">
+                        <!-- Dealer cards will be dynamically added here -->
+                    </div>
+                    <div class="dealer-total" id="dealer-total"></div>
+                </div>
+
+                <!-- Game Messages -->
+                <div class="game-messages" id="game-messages">
+                    <p>Welcome to Blackjack Practice! Click "New Game" to start.</p>
+                </div>
+
+                <!-- Player Section -->
+                <div class="player-section">
+                    <div class="player-label">You</div>
+                    <div class="player-cards" id="player-cards">
+                        <!-- Player cards will be dynamically added here -->
+                    </div>
+                    <div class="player-total" id="player-total"></div>
+                </div>
+
+                <!-- Betting Area -->
+                <div class="betting-area">
+                    <div class="bet-controls">
+                        <label for="bet-amount">Bet Amount:</label>
+                        <input type="number" id="bet-amount" min="5" max="500" value="25" step="5">
+                        <div class="chip-buttons">
+                            <button class="chip-btn" data-value="5">$5</button>
+                            <button class="chip-btn" data-value="25">$25</button>
+                            <button class="chip-btn" data-value="50">$50</button>
+                            <button class="chip-btn" data-value="100">$100</button>
+                        </div>
+                    </div>
+                    <div class="current-bet">
+                        <span>Current Bet: $<span id="current-bet">25</span></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Game Controls -->
+        <section class="game-controls">
+            <div class="control-buttons">
+                <button class="btn btn-primary" id="new-game-btn">New Game</button>
+                <button class="btn btn-secondary" id="deal-btn" disabled>Deal</button>
+                <button class="btn btn-action" id="hit-btn" disabled>Hit</button>
+                <button class="btn btn-action" id="stand-btn" disabled>Stand</button>
+                <button class="btn btn-special" id="double-btn" disabled>Double Down</button>
+                <button class="btn btn-special" id="split-btn" disabled>Split</button>
+                <button class="btn btn-special" id="insurance-btn" disabled>Insurance</button>
+            </div>
+            
+            <div class="secondary-controls">
+                <button class="btn btn-utility" id="undo-btn" disabled title="Undo last action (U)">Undo</button>
+                <button class="btn btn-utility" id="hint-btn" disabled title="Show strategy hint (?)">Hint</button>
+                <button class="btn btn-utility" id="stats-btn" title="View detailed statistics (S)">Stats</button>
+            </div>
+            
+            <div class="game-options">
+                <div class="option-group">
+                    <label for="deck-count">Number of Decks:</label>
+                    <select id="deck-count">
+                        <option value="1">1 Deck</option>
+                        <option value="2">2 Decks</option>
+                        <option value="4">4 Decks</option>
+                        <option value="6" selected>6 Decks</option>
+                        <option value="8">8 Decks</option>
+                    </select>
+                </div>
+                
+                <div class="option-group">
+                    <label>
+                        <input type="checkbox" id="basic-strategy-hints" checked>
+                        Show Basic Strategy Hints
+                    </label>
+                </div>
+                
+                <div class="option-group">
+                    <label>
+                        <input type="checkbox" id="card-counting-practice">
+                        Card Counting Practice Mode
+                    </label>
+                </div>
+                
+                <div class="option-group">
+                    <label for="game-speed">Game Speed:</label>
+                    <select id="game-speed">
+                        <option value="slow">Slow</option>
+                        <option value="normal" selected>Normal</option>
+                        <option value="fast">Fast</option>
+                        <option value="instant">Instant</option>
+                    </select>
+                </div>
+                
+                <div class="option-group">
+                    <label>
+                        <input type="checkbox" id="auto-play" disabled>
+                        Auto-Play with Strategy
+                    </label>
+                </div>
+                
+                <div class="option-group">
+                    <label>
+                        <input type="checkbox" id="sound-effects">
+                        Sound Effects
+                    </label>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Strategy Hint Modal -->
+    <div class="modal" id="strategy-hint-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Basic Strategy Recommendation</h3>
+                <span class="close" id="close-hint">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="strategy-hint-text"></p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2024 BlackjackPro. Practice responsibly.</p>
+            <p>This is a practice tool for educational purposes only.</p>
+        </div>
+    </footer>
+
+    <script src="js/app.js" type="module"></script>
+</body>
+</html>

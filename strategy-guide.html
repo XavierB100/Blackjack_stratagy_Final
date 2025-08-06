@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic Strategy Guide - Blackjack Practice</title>
+    <meta name="description" content="Learn optimal blackjack basic strategy with our comprehensive guide and interactive charts.">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-logo">
+                    <h1>BlackjackPro</h1>
+                </div>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="index.html" class="nav-link">Game</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="strategy-guide.html" class="nav-link active">Strategy Guide</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="card-counting.html" class="nav-link">Card Counting</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="about.html" class="nav-link">About</a>
+                    </li>
+                </ul>
+                <div class="hamburger">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="page-content">
+        <div class="content-container">
+            <header class="page-header">
+                <h1>Basic Strategy Guide</h1>
+                <p class="page-subtitle">Master the mathematically optimal play for every situation</p>
+            </header>
+
+            <section class="content-section">
+                <h2>What is Basic Strategy?</h2>
+                <div class="text-content">
+                    <p>Basic strategy is the mathematically optimal way to play every hand in blackjack based on your cards and the dealer's upcard. It was developed through computer simulation of millions of hands and reduces the house edge to its minimum.</p>
+                    
+                    <div class="highlight-box">
+                        <h3>Key Benefits:</h3>
+                        <ul>
+                            <li>Reduces house edge to approximately 0.5%</li>
+                            <li>Eliminates guesswork from decision making</li>
+                            <li>Provides consistent, optimal play</li>
+                            <li>Essential foundation for advanced techniques</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section class="content-section">
+                <h2>Interactive Basic Strategy Charts</h2>
+                <div class="strategy-tools">
+                    <div class="quick-lookup-tool">
+                        <h3>Quick Strategy Lookup</h3>
+                        <div class="lookup-inputs">
+                            <div class="input-group">
+                                <label for="player-hand">Your Hand:</label>
+                                <select id="player-hand">
+                                    <option value="">Select your hand...</option>
+                                    <optgroup label="Hard Totals">
+                                        <option value="hard-5">5</option>
+                                        <option value="hard-6">6</option>
+                                        <option value="hard-7">7</option>
+                                        <option value="hard-8">8</option>
+                                        <option value="hard-9">9</option>
+                                        <option value="hard-10">10</option>
+                                        <option value="hard-11">11</option>
+                                        <option value="hard-12">12</option>
+                                        <option value="hard-13">13</option>
+                                        <option value="hard-14">14</option>
+                                        <option value="hard-15">15</option>
+                                        <option value="hard-16">16</option>
+                                        <option value="hard-17">17</option>
+                                        <option value="hard-18">18</option>
+                                        <option value="hard-19">19</option>
+                                        <option value="hard-20">20</option>
+                                        <option value="hard-21">21</option>
+                                    </optgroup>
+                                    <optgroup label="Soft Totals">
+                                        <option value="soft-13">A,2 (Soft 13)</option>
+                                        <option value="soft-14">A,3 (Soft 14)</option>
+                                        <option value="soft-15">A,4 (Soft 15)</option>
+                                        <option value="soft-16">A,5 (Soft 16)</option>
+                                        <option value="soft-17">A,6 (Soft 17)</option>
+                                        <option value="soft-18">A,7 (Soft 18)</option>
+                                        <option value="soft-19">A,8 (Soft 19)</option>
+                                        <option value="soft-20">A,9 (Soft 20)</option>
+                                    </optgroup>
+                                    <optgroup label="Pairs">
+                                        <option value="pairs-A">A,A</option>
+                                        <option value="pairs-2">2,2</option>
+                                        <option value="pairs-3">3,3</option>
+                                        <option value="pairs-4">4,4</option>
+                                        <option value="pairs-5">5,5</option>
+                                        <option value="pairs-6">6,6</option>
+                                        <option value="pairs-7">7,7</option>
+                                        <option value="pairs-8">8,8</option>
+                                        <option value="pairs-9">9,9</option>
+                                        <option value="pairs-10">10,10</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="dealer-card">Dealer's Up Card:</label>
+                                <select id="dealer-card">
+                                    <option value="">Select dealer card...</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                    <option value="6">6</option>
+                                    <option value="7">7</option>
+                                    <option value="8">8</option>
+                                    <option value="9">9</option>
+                                    <option value="10">10</option>
+                                    <option value="11">A</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary" id="get-strategy">Get Strategy</button>
+                        </div>
+                        <div class="strategy-result" id="strategy-result" style="display: none;">
+                            <div class="result-action">
+                                <span class="action-text"></span>
+                            </div>
+                            <div class="result-explanation">
+                                <p class="explanation-text"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="strategy-chart-container">
+                    <div class="chart-tabs">
+                        <button class="tab-btn active" data-chart="hard">Hard Totals</button>
+                        <button class="tab-btn" data-chart="soft">Soft Totals</button>
+                        <button class="tab-btn" data-chart="pairs">Pairs</button>
+                    </div>
+
+                    <!-- Hard Totals Chart -->
+                    <div class="strategy-chart active" id="hard-chart">
+                        <h3>Hard Totals (No Ace or Ace counted as 1)</h3>
+                        <div class="chart-table">
+                            <table class="strategy-table">
+                                <thead>
+                                    <tr>
+                                        <th>Your Hand</th>
+                                        <th>2</th>
+                                        <th>3</th>
+                                        <th>4</th>
+                                        <th>5</th>
+                                        <th>6</th>
+                                        <th>7</th>
+                                        <th>8</th>
+                                        <th>9</th>
+                                        <th>10</th>
+                                        <th>A</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Chart data will be populated via JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Soft Totals Chart -->
+                    <div class="strategy-chart" id="soft-chart">
+                        <h3>Soft Totals (Ace counted as 11)</h3>
+                        <div class="chart-table">
+                            <table class="strategy-table">
+                                <thead>
+                                    <tr>
+                                        <th>Your Hand</th>
+                                        <th>2</th>
+                                        <th>3</th>
+                                        <th>4</th>
+                                        <th>5</th>
+                                        <th>6</th>
+                                        <th>7</th>
+                                        <th>8</th>
+                                        <th>9</th>
+                                        <th>10</th>
+                                        <th>A</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Chart data will be populated via JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Pairs Chart -->
+                    <div class="strategy-chart" id="pairs-chart">
+                        <h3>Pairs</h3>
+                        <div class="chart-table">
+                            <table class="strategy-table">
+                                <thead>
+                                    <tr>
+                                        <th>Your Pair</th>
+                                        <th>2</th>
+                                        <th>3</th>
+                                        <th>4</th>
+                                        <th>5</th>
+                                        <th>6</th>
+                                        <th>7</th>
+                                        <th>8</th>
+                                        <th>9</th>
+                                        <th>10</th>
+                                        <th>A</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Chart data will be populated via JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="legend">
+                    <h4>Legend:</h4>
+                    <div class="legend-items">
+                        <div class="legend-item">
+                            <span class="action-hit">H</span> = Hit
+                        </div>
+                        <div class="legend-item">
+                            <span class="action-stand">S</span> = Stand
+                        </div>
+                        <div class="legend-item">
+                            <span class="action-double">D</span> = Double Down (Hit if not allowed)
+                        </div>
+                        <div class="legend-item">
+                            <span class="action-split">SP</span> = Split
+                        </div>
+                        <div class="legend-item">
+                            <span class="action-surrender">SU</span> = Surrender (Hit if not allowed)
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="content-section">
+                <h2>Quick Rules Summary</h2>
+                <div class="rules-grid">
+                    <div class="rule-card">
+                        <h3>Always Hit</h3>
+                        <ul>
+                            <li>Hard 5-8</li>
+                            <li>Hard 12 vs 2-3</li>
+                            <li>Soft 13-15 vs 4-6</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="rule-card">
+                        <h3>Always Stand</h3>
+                        <ul>
+                            <li>Hard 17+</li>
+                            <li>Soft 19+</li>
+                            <li>Hard 12-16 vs 4-6</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="rule-card">
+                        <h3>Always Split</h3>
+                        <ul>
+                            <li>Aces</li>
+                            <li>8s</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="rule-card">
+                        <h3>Never Split</h3>
+                        <ul>
+                            <li>5s (double instead)</li>
+                            <li>10s</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section class="content-section">
+                <h2>Strategy Practice Mode</h2>
+                <div class="practice-mode-container">
+                    <div class="practice-controls">
+                        <button class="btn btn-primary" id="start-practice">Start Practice</button>
+                        <button class="btn btn-secondary" id="next-scenario" disabled>Next Scenario</button>
+                        <button class="btn btn-action" id="reset-practice">Reset</button>
+                        <div class="practice-settings">
+                            <label>
+                                <input type="checkbox" id="show-hints" checked> Show hints
+                            </label>
+                            <label>
+                                <input type="checkbox" id="timed-practice"> Timed practice
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="practice-scenario" id="practice-scenario" style="display: none;">
+                        <div class="scenario-display">
+                            <div class="scenario-cards">
+                                <div class="player-cards">
+                                    <h4>Your Hand:</h4>
+                                    <div class="hand-display" id="practice-player-hand"></div>
+                                </div>
+                                <div class="dealer-cards">
+                                    <h4>Dealer Shows:</h4>
+                                    <div class="hand-display" id="practice-dealer-hand"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="action-buttons">
+                                <button class="action-btn" data-action="hit">Hit</button>
+                                <button class="action-btn" data-action="stand">Stand</button>
+                                <button class="action-btn" data-action="double">Double</button>
+                                <button class="action-btn" data-action="split">Split</button>
+                            </div>
+                            
+                            <div class="practice-feedback" id="practice-feedback" style="display: none;">
+                                <div class="feedback-result"></div>
+                                <div class="feedback-explanation"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="practice-stats">
+                            <div class="stat">
+                                <span class="label">Correct:</span>
+                                <span class="value" id="correct-count">0</span>
+                            </div>
+                            <div class="stat">
+                                <span class="label">Total:</span>
+                                <span class="value" id="total-count">0</span>
+                            </div>
+                            <div class="stat">
+                                <span class="label">Accuracy:</span>
+                                <span class="value" id="accuracy-rate">0%</span>
+                            </div>
+                            <div class="stat" id="timer-stat" style="display: none;">
+                                <span class="label">Time:</span>
+                                <span class="value" id="practice-timer">0:00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="content-section">
+                <h2>Common Mistakes to Avoid</h2>
+                <div class="mistakes-list">
+                    <div class="mistake-item">
+                        <h3>Taking Insurance</h3>
+                        <p>Insurance is a side bet that increases the house edge. Even when you have blackjack, insurance is not recommended unless you're counting cards.</p>
+                        <div class="mistake-example">
+                            <strong>Example:</strong> You have 20, dealer shows Ace. Don't take insurance - your 20 is already a strong hand regardless of whether dealer has blackjack.
+                        </div>
+                    </div>
+                    
+                    <div class="mistake-item">
+                        <h3>Following Hunches</h3>
+                        <p>Stick to basic strategy regardless of previous hands or "gut feelings." Each hand is independent.</p>
+                        <div class="mistake-example">
+                            <strong>Example:</strong> After losing 5 hands in a row with 12 vs 2 by hitting, you might want to stand. Don't - the correct play is still to hit.
+                        </div>
+                    </div>
+                    
+                    <div class="mistake-item">
+                        <h3>Mimicking the Dealer</h3>
+                        <p>The dealer must follow fixed rules, but players should use optimal strategy to take advantage of having choices.</p>
+                        <div class="mistake-example">
+                            <strong>Example:</strong> Dealer always hits soft 17, but as a player you should stand on soft 18 vs dealer 2-8, and hit vs 9,10,A.
+                        </div>
+                    </div>
+                    
+                    <div class="mistake-item">
+                        <h3>Not Doubling When Favorable</h3>
+                        <p>Many players are afraid to double down, but it's essential for optimal play in favorable situations.</p>
+                        <div class="mistake-example">
+                            <strong>Example:</strong> 11 vs dealer 6 is a prime doubling situation. You're likely to get a good card, and dealer is likely to bust.
+                        </div>
+                    </div>
+                    
+                    <div class="mistake-item">
+                        <h3>Splitting 10s</h3>
+                        <p>Never split 10s - you already have an excellent hand worth 20. Splitting breaks up a sure winner.</p>
+                        <div class="mistake-example">
+                            <strong>Example:</strong> K,Q vs dealer 5. Even though dealer has a weak card, your 20 wins about 85% of the time. Keep it together.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="rule-variations-section">
+                    <h3>Rule Variations & Their Impact</h3>
+                    <div class="variations-grid">
+                        <div class="variation-card favorable">
+                            <h4>Favorable Rules</h4>
+                            <ul>
+                                <li>Dealer stands on soft 17 (-0.2%)</li>
+                                <li>Double after split allowed (-0.14%)</li>
+                                <li>Surrender allowed (-0.07%)</li>
+                                <li>Double on any two cards (-0.25%)</li>
+                                <li>Resplit aces allowed (-0.03%)</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="variation-card unfavorable">
+                            <h4>Unfavorable Rules</h4>
+                            <ul>
+                                <li>Dealer hits soft 17 (+0.2%)</li>
+                                <li>Blackjack pays 6:5 (+1.4%)</li>
+                                <li>No double after split (+0.14%)</li>
+                                <li>No surrender (+0.07%)</li>
+                                <li>Double on 10,11 only (+0.25%)</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <p class="variations-note"><strong>Note:</strong> Percentages show impact on house edge. Negative numbers favor the player.</p>
+                </div>
+            </section>
+
+            <div class="cta-section">
+                <a href="index.html" class="btn btn-primary">Practice Now</a>
+                <p>Ready to put your knowledge to the test? Head to the game table and practice basic strategy!</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2024 BlackjackPro. Practice responsibly.</p>
+            <p>This is a practice tool for educational purposes only.</p>
+        </div>
+    </footer>
+
+    <script src="js/strategy-guide.js" type="module"></script>
+</body>
+</html>

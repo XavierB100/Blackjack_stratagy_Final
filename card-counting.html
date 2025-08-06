@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Counting Guide - Blackjack Practice</title>
+    <meta name="description" content="Learn card counting techniques including Hi-Lo system for advanced blackjack play.">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-logo">
+                    <h1>BlackjackPro</h1>
+                </div>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="index.html" class="nav-link">Game</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="strategy-guide.html" class="nav-link">Strategy Guide</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="card-counting.html" class="nav-link active">Card Counting</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="about.html" class="nav-link">About</a>
+                    </li>
+                </ul>
+                <div class="hamburger">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="page-content">
+        <div class="content-container">
+            <header class="page-header">
+                <h1>Card Counting Guide</h1>
+                <p class="page-subtitle">Advanced techniques for tracking the deck composition</p>
+                <div class="disclaimer">
+                    <strong>Disclaimer:</strong> Card counting is legal but casinos may ask you to leave. This information is for educational purposes only.
+                </div>
+            </header>
+
+            <section class="content-section">
+                <h2>What is Card Counting?</h2>
+                <div class="text-content">
+                    <p>Card counting is a technique used to track the ratio of high to low cards remaining in the deck. When more high cards (10s, face cards, Aces) remain, the player has a statistical advantage.</p>
+                    
+                    <div class="highlight-box">
+                        <h3>Why High Cards Favor the Player:</h3>
+                        <ul>
+                            <li>More blackjacks (pays 3:2)</li>
+                            <li>Dealer busts more often on stiff hands</li>
+                            <li>Better double down opportunities</li>
+                            <li>More profitable splitting situations</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section class="content-section">
+                <h2>Hi-Lo Counting System</h2>
+                <div class="counting-system">
+                    <p>The Hi-Lo system is the most popular and effective card counting method for beginners. Each card is assigned a value:</p>
+                    
+                    <div class="card-values">
+                        <div class="value-group positive">
+                            <h3>Low Cards (+1)</h3>
+                            <div class="cards">
+                                <span class="card-display">2</span>
+                                <span class="card-display">3</span>
+                                <span class="card-display">4</span>
+                                <span class="card-display">5</span>
+                                <span class="card-display">6</span>
+                            </div>
+                        </div>
+                        
+                        <div class="value-group neutral">
+                            <h3>Neutral Cards (0)</h3>
+                            <div class="cards">
+                                <span class="card-display">7</span>
+                                <span class="card-display">8</span>
+                                <span class="card-display">9</span>
+                            </div>
+                        </div>
+                        
+                        <div class="value-group negative">
+                            <h3>High Cards (-1)</h3>
+                            <div class="cards">
+                                <span class="card-display">10</span>
+                                <span class="card-display">J</span>
+                                <span class="card-display">Q</span>
+                                <span class="card-display">K</span>
+                                <span class="card-display">A</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="content-section">
+                <h2>Running Count vs True Count</h2>
+                <div class="count-explanation">
+                    <div class="count-type">
+                        <h3>Running Count</h3>
+                        <p>The ongoing tally of all cards seen since the shuffle. Simply add or subtract card values as they appear.</p>
+                        <div class="example">
+                            <strong>Example:</strong> Cards dealt: 2, K, 5, 7, A, 3<br>
+                            Running Count: +1 -1 +1 +0 -1 +1 = +1
+                        </div>
+                    </div>
+                    
+                    <div class="count-type">
+                        <h3>True Count</h3>
+                        <p>The running count divided by the estimated number of decks remaining. This normalizes the count across different deck sizes.</p>
+                        <div class="formula">
+                            <strong>Formula:</strong> True Count = Running Count ÷ Decks Remaining
+                        </div>
+                        <div class="example">
+                            <strong>Example:</strong> Running Count +6, 3 decks left<br>
+                            True Count: +6 ÷ 3 = +2
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="content-section">
+                <h2>Betting Strategy</h2>
+                <div class="betting-strategy">
+                    <p>Adjust your bet size based on the true count to maximize profits when you have the advantage:</p>
+                    
+                    <table class="betting-table">
+                        <thead>
+                            <tr>
+                                <th>True Count</th>
+                                <th>Bet Size</th>
+                                <th>Player Advantage</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>+1 or less</td>
+                                <td>Minimum</td>
+                                <td>-0.5% to 0%</td>
+                                <td>Basic strategy, minimum bet</td>
+                            </tr>
+                            <tr>
+                                <td>+2</td>
+                                <td>2x minimum</td>
+                                <td>+0.5%</td>
+                                <td>Slight advantage, increase bet</td>
+                            </tr>
+                            <tr>
+                                <td>+3</td>
+                                <td>3x minimum</td>
+                                <td>+1.0%</td>
+                                <td>Good advantage, larger bet</td>
+                            </tr>
+                            <tr>
+                                <td>+4</td>
+                                <td>4x minimum</td>
+                                <td>+1.5%</td>
+                                <td>Strong advantage, maximum bet</td>
+                            </tr>
+                            <tr>
+                                <td>+5 or more</td>
+                                <td>5x minimum</td>
+                                <td>+2.0%+</td>
+                                <td>Very strong advantage, max bet</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="content-section">
+                <h2>Strategy Deviations</h2>
+                <div class="text-content">
+                    <p>When the true count is significantly positive or negative, basic strategy should be modified. Here are the most important deviations:</p>
+                    
+                    <div class="deviations-list">
+                        <div class="deviation-item">
+                            <h4>Insurance (True Count +3 or higher)</h4>
+                            <p>Take insurance when the true count is +3 or higher, as there are more 10-value cards remaining.</p>
+                        </div>
+                        
+                        <div class="deviation-item">
+                            <h4>16 vs 10 (True Count 0 or higher)</h4>
+                            <p>Stand on 16 vs dealer 10 when true count is 0 or higher (instead of hitting).</p>
+                        </div>
+                        
+                        <div class="deviation-item">
+                            <h4>15 vs 10 (True Count +4 or higher)</h4>
+                            <p>Stand on 15 vs dealer 10 when true count is +4 or higher.</p>
+                        </div>
+                        
+                        <div class="deviation-item">
+                            <h4>12 vs 2 (True Count +3 or higher)</h4>
+                            <p>Stand on 12 vs dealer 2 when true count is +3 or higher.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="content-section">
+                <h2>Practice Drills</h2>
+                <div class="drill-tabs">
+                    <button class="tab-btn active" data-drill="speed">Speed Counting</button>
+                    <button class="tab-btn" data-drill="true-count">True Count</button>
+                    <button class="tab-btn" data-drill="scenario">Casino Scenarios</button>
+                    <button class="tab-btn" data-drill="betting">Betting Practice</button>
+                </div>
+                
+                <!-- Speed Counting Drill -->
+                <div class="practice-section active" id="speed-drill">
+                    <h3>Speed Counting Drill</h3>
+                    <p>Practice counting through a deck as quickly as possible while maintaining accuracy.</p>
+                    <div class="difficulty-selector">
+                        <label>
+                            <input type="radio" name="speed" value="slow" checked> Slow (2 sec/card)
+                        </label>
+                        <label>
+                            <input type="radio" name="speed" value="medium"> Medium (1 sec/card)
+                        </label>
+                        <label>
+                            <input type="radio" name="speed" value="fast"> Fast (0.5 sec/card)
+                        </label>
+                        <label>
+                            <input type="radio" name="speed" value="manual"> Manual Control
+                        </label>
+                    </div>
+                    
+                    <div class="drill-container">
+                        <div class="drill-controls">
+                            <button class="btn btn-primary" id="start-drill">Start Drill</button>
+                            <button class="btn btn-secondary" id="next-card" disabled>Next Card</button>
+                            <button class="btn btn-action" id="reset-drill">Reset</button>
+                        </div>
+                        
+                        <div class="drill-display">
+                            <div class="current-card" id="current-card">
+                                Click "Start Drill" to begin
+                            </div>
+                            <div class="drill-stats">
+                                <div class="stat">
+                                    <span class="label">Cards Remaining:</span>
+                                    <span class="value" id="cards-remaining">52</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="label">Your Count:</span>
+                                    <input type="number" id="user-count" value="0" disabled>
+                                </div>
+                                <div class="stat">
+                                    <span class="label">Time:</span>
+                                    <span class="value" id="drill-time">0:00</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="drill-result" id="drill-result" style="display: none;">
+                            <h4>Drill Complete!</h4>
+                            <p>Final count should be 0 for a balanced deck.</p>
+                            <p>Your count: <span id="final-count"></span></p>
+                            <p>Accuracy: <span id="accuracy"></span></p>
+                            <p>Time: <span id="final-time"></span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- True Count Practice -->
+                <div class="practice-section" id="true-count-drill" style="display: none;">
+                    <h3>True Count Calculation</h3>
+                    <p>Practice converting running count to true count based on decks remaining.</p>
+                    
+                    <div class="true-count-container">
+                        <div class="count-scenario">
+                            <div class="scenario-info">
+                                <div class="info-item">
+                                    <label>Running Count:</label>
+                                    <span id="running-count-display">+6</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Decks Remaining:</label>
+                                    <span id="decks-remaining-display">2.5</span>
+                                </div>
+                            </div>
+                            
+                            <div class="true-count-input">
+                                <label for="true-count-answer">True Count:</label>
+                                <input type="number" id="true-count-answer" step="0.1" placeholder="Enter true count">
+                                <button class="btn btn-primary" id="check-true-count">Check Answer</button>
+                            </div>
+                            
+                            <div class="true-count-result" id="true-count-result" style="display: none;">
+                                <div class="result-text"></div>
+                                <button class="btn btn-secondary" id="next-true-count">Next Scenario</button>
+                            </div>
+                        </div>
+                        
+                        <div class="true-count-stats">
+                            <div class="stat">
+                                <span class="label">Correct:</span>
+                                <span class="value" id="true-count-correct">0</span>
+                            </div>
+                            <div class="stat">
+                                <span class="label">Total:</span>
+                                <span class="value" id="true-count-total">0</span>
+                            </div>
+                            <div class="stat">
+                                <span class="label">Accuracy:</span>
+                                <span class="value" id="true-count-accuracy">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Casino Scenarios -->
+                <div class="practice-section" id="scenario-drill" style="display: none;">
+                    <h3>Real Casino Scenarios</h3>
+                    <p>Practice counting in realistic casino environments with distractions and varying conditions.</p>
+                    
+                    <div class="scenario-container">
+                        <div class="scenario-selector">
+                            <button class="scenario-btn active" data-scenario="basic">Basic Table</button>
+                            <button class="scenario-btn" data-scenario="crowded">Crowded Table</button>
+                            <button class="scenario-btn" data-scenario="fast">Fast Dealer</button>
+                            <button class="scenario-btn" data-scenario="shuffle">Shuffle Tracking</button>
+                        </div>
+                        
+                        <div class="scenario-display" id="scenario-display">
+                            <div class="scenario-info">
+                                <h4 id="scenario-title">Basic Casino Table</h4>
+                                <p id="scenario-description">Standard 6-deck game, moderate pace, few distractions</p>
+                            </div>
+                            
+                            <div class="scenario-game">
+                                <div class="table-layout">
+                                    <div class="dealer-area">
+                                        <div class="dealer-cards" id="scenario-dealer-cards"></div>
+                                    </div>
+                                    <div class="player-areas" id="scenario-player-areas">
+                                        <!-- Multiple player positions -->
+                                    </div>
+                                    <div class="your-position">
+                                        <div class="your-cards" id="scenario-your-cards"></div>
+                                        <div class="betting-circle">
+                                            <span>Your Bet: $<span id="current-bet">25</span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="scenario-controls">
+                                    <button class="btn btn-primary" id="start-scenario">Start Scenario</button>
+                                    <button class="btn btn-secondary" id="pause-scenario">Pause</button>
+                                    <div class="count-input">
+                                        <label>Your Count:</label>
+                                        <input type="number" id="scenario-count" value="0">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="scenario-feedback" id="scenario-feedback" style="display: none;">
+                                <div class="feedback-content"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Betting Strategy Practice -->
+                <div class="practice-section" id="betting-drill" style="display: none;">
+                    <h3>Betting Strategy Practice</h3>
+                    <p>Learn optimal bet sizing based on true count and bankroll management.</p>
+                    
+                    <div class="betting-container">
+                        <div class="bankroll-setup">
+                            <div class="input-group">
+                                <label for="starting-bankroll">Starting Bankroll:</label>
+                                <input type="number" id="starting-bankroll" value="10000" step="100">
+                            </div>
+                            <div class="input-group">
+                                <label for="min-bet">Minimum Bet:</label>
+                                <input type="number" id="min-bet" value="25" step="5">
+                            </div>
+                            <div class="input-group">
+                                <label for="max-bet">Maximum Bet:</label>
+                                <input type="number" id="max-bet" value="500" step="25">
+                            </div>
+                        </div>
+                        
+                        <div class="betting-scenarios">
+                            <div class="betting-scenario">
+                                <div class="count-situation">
+                                    <h4>Count Situation</h4>
+                                    <div class="situation-details">
+                                        <div class="detail">
+                                            <label>True Count:</label>
+                                            <span id="betting-true-count">+3.5</span>
+                                        </div>
+                                        <div class="detail">
+                                            <label>Current Bankroll:</label>
+                                            <span id="current-bankroll">$9,850</span>
+                                        </div>
+                                        <div class="detail">
+                                            <label>Risk of Ruin:</label>
+                                            <span id="risk-level">Low</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="bet-decision">
+                                    <label for="bet-amount">Your Bet:</label>
+                                    <input type="number" id="bet-amount" step="5" min="25" max="500">
+                                    <button class="btn btn-primary" id="place-bet">Place Bet</button>
+                                </div>
+                                
+                                <div class="bet-feedback" id="bet-feedback" style="display: none;">
+                                    <div class="feedback-result"></div>
+                                    <div class="optimal-bet">Optimal bet: $<span id="optimal-bet-amount"></span></div>
+                                    <div class="bet-explanation"></div>
+                                    <button class="btn btn-secondary" id="next-bet-scenario">Next Scenario</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="betting-stats">
+                            <div class="stat">
+                                <span class="label">Scenarios:</span>
+                                <span class="value" id="betting-scenarios-count">0</span>
+                            </div>
+                            <div class="stat">
+                                <span class="label">Optimal Bets:</span>
+                                <span class="value" id="optimal-bets-count">0</span>
+                            </div>
+                            <div class="stat">
+                                <span class="label">Bankroll Growth:</span>
+                                <span class="value" id="bankroll-growth">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="content-section">
+                <h2>Heat Management & Casino Countermeasures</h2>
+                <div class="heat-management-section">
+                    <div class="heat-info">
+                        <h3>Avoiding Detection</h3>
+                        <div class="heat-tips">
+                            <div class="tip-item">
+                                <h4>Bet Spread Management</h4>
+                                <p>Keep your bet spread reasonable. A 1-8 spread is generally safe for most games. Avoid dramatic bet increases.</p>
+                                <div class="example">
+                                    <strong>Good:</strong> $25 → $50 → $100 → $150<br>
+                                    <strong>Bad:</strong> $25 → $25 → $300 → $25
+                                </div>
+                            </div>
+                            
+                            <div class="tip-item">
+                                <h4>Playing Deviations</h4>
+                                <p>Use basic strategy deviations sparingly and only for the most profitable situations.</p>
+                                <div class="priority-list">
+                                    <strong>High Priority:</strong>
+                                    <ul>
+                                        <li>Insurance at +3 true count</li>
+                                        <li>16 vs 10 stand at 0 true count</li>
+                                    </ul>
+                                    <strong>Lower Priority:</strong>
+                                    <ul>
+                                        <li>15 vs 10 stand at +4</li>
+                                        <li>12 vs 2 stand at +3</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="tip-item">
+                                <h4>Table Behavior</h4>
+                                <p>Act like a typical recreational player. Avoid obvious counting behaviors.</p>
+                                <div class="behavior-list">
+                                    <strong>Do:</strong>
+                                    <ul>
+                                        <li>Make casual conversation</li>
+                                        <li>Tip the dealer occasionally</li>
+                                        <li>Take breaks naturally</li>
+                                        <li>Order drinks (non-alcoholic)</li>
+                                    </ul>
+                                    <strong>Don't:</strong>
+                                    <ul>
+                                        <li>Stare at cards intensely</li>
+                                        <li>Move lips while counting</li>
+                                        <li>Dramatically change bet sizes</li>
+                                        <li>Leave immediately after shuffles</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="countermeasures-info">
+                        <h3>Common Casino Countermeasures</h3>
+                        <div class="countermeasures-grid">
+                            <div class="countermeasure-item">
+                                <h4>Preferential Shuffling</h4>
+                                <p>Shuffling when the count becomes favorable to players. Kills your advantage.</p>
+                                <div class="response"><strong>Response:</strong> Find tables with better penetration or leave.</div>
+                            </div>
+                            
+                            <div class="countermeasure-item">
+                                <h4>Flat Betting</h4>
+                                <p>Dealer may ask you to keep bets consistent or limit your betting spread.</p>
+                                <div class="response"><strong>Response:</strong> Comply or find another table/casino.</div>
+                            </div>
+                            
+                            <div class="countermeasure-item">
+                                <h4>Back-off</h4>
+                                <p>Casino asks you to stop playing blackjack but allows other games.</p>
+                                <div class="response"><strong>Response:</strong> Leave politely. You may be in their database.</div>
+                            </div>
+                            
+                            <div class="countermeasure-item">
+                                <h4>Trespass</h4>
+                                <p>Casino bans you completely from the property.</p>
+                                <div class="response"><strong>Response:</strong> Leave immediately. Don't return to that casino chain.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="content-section">
+                <h2>Important Considerations</h2>
+                <div class="considerations">
+                    <div class="consideration-item">
+                        <h3>Bankroll Management</h3>
+                        <p>Card counting requires a substantial bankroll to weather the natural variance. A good rule is to have at least 100-200 times your maximum bet.</p>
+                    </div>
+                    
+                    <div class="consideration-item">
+                        <h3>Casino Countermeasures</h3>
+                        <p>Casinos use various methods to detect counters: surveillance, frequent shuffling, betting pattern analysis, and barring suspected counters.</p>
+                    </div>
+                    
+                    <div class="consideration-item">
+                        <h3>Practice Requirements</h3>
+                        <p>Successful card counting requires hundreds of hours of practice to maintain accuracy under casino conditions.</p>
+                    </div>
+                </div>
+            </section>
+
+            <div class="cta-section">
+                <a href="index.html" class="btn btn-primary">Practice Counting</a>
+                <p>Enable card counting mode in the main game to practice tracking the count while playing!</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2024 BlackjackPro. Practice responsibly.</p>
+            <p>This is a practice tool for educational purposes only.</p>
+        </div>
+    </footer>
+
+    <script src="js/card-counting.js" type="module"></script>
+</body>
+</html>
