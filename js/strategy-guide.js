@@ -667,9 +667,21 @@ class StrategyGuideApp {
         dealerHandDiv.innerHTML = `<div class=\"practice-card ${dealerColor}\">${dealerCard}</div>`;
     }
 
+    convertActionToCode(userAction) {
+        const actionMapping = {
+            'hit': 'H',
+            'stand': 'S', 
+            'double': 'D',
+            'split': 'SP',
+            'surrender': 'SU'
+        };
+        return actionMapping[userAction] || 'H';
+    }
+
     handlePracticeAnswer(userAction) {
         const scenario = this.practiceMode.currentScenario;
-        const isCorrect = userAction === scenario.correctAction;
+        const userActionCode = this.convertActionToCode(userAction);
+        const isCorrect = userActionCode === scenario.correctAction;
         
         this.practiceMode.stats.total++;
         if (isCorrect) {
@@ -685,7 +697,7 @@ class StrategyGuideApp {
             if (btn.dataset.action === userAction) {
                 btn.classList.add(isCorrect ? 'correct' : 'incorrect');
             }
-            if (btn.dataset.action === scenario.correctAction && !isCorrect) {
+            if (this.convertActionToCode(btn.dataset.action) === scenario.correctAction && !isCorrect) {
                 btn.classList.add('correct');
             }
         });
