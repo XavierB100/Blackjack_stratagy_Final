@@ -3532,3 +3532,67 @@ kbd {
         transform: scale(0.98);
     }
 }
+
+/* Surrender Integration Styles */
+.chart-settings {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: rgba(255, 215, 0, 0.05);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: var(--border-radius);
+}
+
+.rule-toggle {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.rule-toggle label {
+    color: var(--gold);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.rule-toggle input[type="checkbox"] {
+    margin-right: 0.5rem;
+    accent-color: var(--gold);
+    transform: scale(1.2);
+}
+
+.rule-note {
+    color: var(--gray);
+    font-size: 0.9rem;
+    font-style: italic;
+    margin-left: 1.5rem;
+}
+
+/* Surrender Button for Practice Mode */
+.action-btn[data-action="surrender"] {
+    background: #8b5cf6;
+    border: 2px solid #7c3aed;
+    color: white;
+}
+
+.action-btn[data-action="surrender"]:hover {
+    background: #7c3aed;
+    border-color: #6d28d9;
+}
+
+.action-btn[data-action="surrender"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.action-btn[data-action="surrender"].correct {
+    background: #22c55e;
+    border-color: #16a34a;
+}
+
+.action-btn[data-action="surrender"].incorrect {
+    background: #ef4444;
+    border-color: #dc2626;
+}

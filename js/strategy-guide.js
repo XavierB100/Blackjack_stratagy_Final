@@ -21,6 +21,7 @@ class StrategyGuideApp {
             startTime: null
         };
         this.basicStrategyData = this.initializeBasicStrategyData();
+        this.surrenderFallbacks = this.initializeSurrenderFallbacks();
     }
 
     async init() {
@@ -96,6 +97,24 @@ class StrategyGuideApp {
         this.populatePairsChart(charts.pairs);
     }
 
+    getActionWithSurrenderRule(chartType, handValue, dealerCard, originalAction) {
+        // Check if surrender is allowed
+        const surrenderAllowed = document.getElementById('surrender-allowed')?.checked ?? true;
+        
+        // If surrender is allowed or the action isn't surrender, return original action
+        if (surrenderAllowed || originalAction !== 'SU') {
+            return originalAction;
+        }
+        
+        // If surrender is not allowed and original action is surrender, return fallback
+        if (chartType === 'hard' && this.surrenderFallbacks.hard[handValue]?.[dealerCard]) {
+            return this.surrenderFallbacks.hard[handValue][dealerCard];
+        }
+        
+        // Default fallback is Hit
+        return 'H';
+    }
+
     populateHardChart(hardData) {
         const tbody = document.querySelector('#hard-chart tbody');
         if (!tbody || !hardData) return;
@@ -115,7 +134,8 @@ class StrategyGuideApp {
             // Dealer upcard cells (2-11, where 11 represents Ace)
             for (let dealerCard = 2; dealerCard <= 11; dealerCard++) {
                 const cell = document.createElement('td');
-                const action = hardData[total]?.[dealerCard] || 'H';
+                const originalAction = hardData[total]?.[dealerCard] || 'H';
+                const action = this.getActionWithSurrenderRule('hard', total, dealerCard, originalAction);
                 
                 cell.textContent = action;
                 cell.className = `action-cell ${this.getActionClass(action)}`;
@@ -283,6 +303,9 @@ class StrategyGuideApp {
         
         // Add print functionality
         this.setupPrintFunction();
+        
+        // Setup surrender toggles
+        this.setupSurrenderToggles();
     }
 
     setupKeyboardNavigation() {
@@ -305,6 +328,39 @@ class StrategyGuideApp {
                 window.print();
             });
         }
+    }
+
+    setupSurrenderToggles() {
+        // Chart surrender toggle
+        const chartSurrenderToggle = document.getElementById('surrender-allowed');
+        if (chartSurrenderToggle) {
+            chartSurrenderToggle.addEventListener('change', (e) => {
+                this.handleChartSurrenderToggle(e.target.checked);
+            });
+        }
+
+        // Practice mode surrender toggle
+        const practiceSurrenderToggle = document.getElementById('practice-surrender-allowed');
+        if (practiceSurrenderToggle) {
+            practiceSurrenderToggle.addEventListener('change', (e) => {
+                this.handlePracticeSurrenderToggle(e.target.checked);
+            });
+        }
+    }
+
+    handleChartSurrenderToggle(surrenderAllowed) {
+        // Re-populate charts with updated surrender settings
+        this.populateStrategyCharts();
+        console.log(`Chart surrender toggle: ${surrenderAllowed ? 'enabled' : 'disabled'}`);
+    }
+
+    handlePracticeSurrenderToggle(surrenderAllowed) {
+        // Update surrender button visibility in practice mode
+        const surrenderBtn = document.getElementById('surrender-btn');
+        if (surrenderBtn) {
+            surrenderBtn.style.display = surrenderAllowed ? 'inline-block' : 'none';
+        }
+        console.log(`Practice surrender toggle: ${surrenderAllowed ? 'enabled' : 'disabled'}`);
     }
 
     highlightChartFeatures(chartType) {
@@ -341,6 +397,16 @@ class StrategyGuideApp {
         return output;
     }
 
+    initializeSurrenderFallbacks() {
+        // Fallback actions when surrender is not allowed
+        return {
+            hard: {
+                15: { 10: 'H' }, // Hard 15 vs 10: Surrender → Hit
+                16: { 9: 'H', 10: 'H', 11: 'H' } // Hard 16 vs 9/10/A: Surrender → Hit
+            }
+        };
+    }
+
     initializeBasicStrategyData() {
         // Complete basic strategy data for all scenarios
         return {
@@ -351,7 +417,7 @@ class StrategyGuideApp {
                 8: { 2: 'H', 3: 'H', 4: 'H', 5: 'H', 6: 'H', 7: 'H', 8: 'H', 9: 'H', 10: 'H', 11: 'H' },
                 9: { 2: 'H', 3: 'D', 4: 'D', 5: 'D', 6: 'D', 7: 'H', 8: 'H', 9: 'H', 10: 'H', 11: 'H' },
                 10: { 2: 'D', 3: 'D', 4: 'D', 5: 'D', 6: 'D', 7: 'D', 8: 'D', 9: 'D', 10: 'H', 11: 'H' },
-                11: { 2: 'D', 3: 'D', 4: 'D', 5: 'D', 6: 'D', 7: 'D', 8: 'D', 9: 'D', 10: 'D', 11: 'D' },
+                11: { 2: 'D', 3: 'D', 4: 'D', 5: 'D', 6: 'D', 7: 'D', 8: 'D', 9: 'D', 10: 'D', 11: 'H' },
                 12: { 2: 'H', 3: 'H', 4: 'S', 5: 'S', 6: 'S', 7: 'H', 8: 'H', 9: 'H', 10: 'H', 11: 'H' },
                 13: { 2: 'S', 3: 'S', 4: 'S', 5: 'S', 6: 'S', 7: 'H', 8: 'H', 9: 'H', 10: 'H', 11: 'H' },
                 14: { 2: 'S', 3: 'S', 4: 'S', 5: 'S', 6: 'S', 7: 'H', 8: 'H', 9: 'H', 10: 'H', 11: 'H' },
@@ -433,22 +499,35 @@ class StrategyGuideApp {
 
     getStrategyForSituation(playerHand, dealerCard) {
         const [type, value] = playerHand.split('-');
-        let action = 'H';
+        let originalAction = 'H';
         let explanation = '';
 
         switch (type) {
             case 'hard':
                 const total = parseInt(value);
-                action = this.basicStrategyData.hard[total]?.[dealerCard] || 'H';
-                explanation = this.getHardExplanation(total, dealerCard, action);
+                originalAction = this.basicStrategyData.hard[total]?.[dealerCard] || 'H';
                 break;
             case 'soft':
                 const softTotal = parseInt(value);
-                action = this.basicStrategyData.soft[softTotal]?.[dealerCard] || 'H';
-                explanation = this.getSoftExplanation(softTotal, dealerCard, action);
+                originalAction = this.basicStrategyData.soft[softTotal]?.[dealerCard] || 'H';
                 break;
             case 'pairs':
-                action = this.basicStrategyData.pairs[value]?.[dealerCard] || 'H';
+                originalAction = this.basicStrategyData.pairs[value]?.[dealerCard] || 'H';
+                break;
+        }
+
+        // Apply surrender rule
+        const action = this.getActionWithSurrenderRule(type, parseInt(value), dealerCard, originalAction);
+        
+        // Get explanation for the final action
+        switch (type) {
+            case 'hard':
+                explanation = this.getHardExplanation(parseInt(value), dealerCard, action);
+                break;
+            case 'soft':
+                explanation = this.getSoftExplanation(parseInt(value), dealerCard, action);
+                break;
+            case 'pairs':
                 explanation = this.getPairExplanation(value, dealerCard, action);
                 break;
         }
@@ -459,6 +538,10 @@ class StrategyGuideApp {
     getHardExplanation(total, dealerCard, action) {
         const dealerText = dealerCard === 11 ? 'Ace' : dealerCard;
         const actionText = this.getActionName(action);
+        
+        // Check if this was a surrender scenario that was converted to a fallback
+        const originalAction = this.basicStrategyData.hard[total]?.[dealerCard] || 'H';
+        const surrenderNotAllowed = originalAction === 'SU' && action !== 'SU';
 
         if (total <= 8) {
             return `With a hard ${total}, you should always hit regardless of dealer card. Your hand is too weak to stand.`;
@@ -475,11 +558,15 @@ class StrategyGuideApp {
                 `Stand against dealer ${dealerText}. Dealer has high bust probability, so avoid risking your own bust.` :
                 `Hit against dealer ${dealerText}. Despite bust risk, dealer's strong card requires improvement.`;
         } else if (total >= 13 && total <= 16) {
-            return action === 'S' ? 
-                `Stand on ${total} against dealer ${dealerText}. Dealer is likely to bust with this weak upcard.` :
-                action === 'SU' ? 
-                `Surrender if allowed, otherwise hit. This is a tough spot against dealer ${dealerText}.` :
-                `Hit on ${total} against dealer ${dealerText}. Dealer's strong card requires you to improve.`;
+            if (action === 'S') {
+                return `Stand on ${total} against dealer ${dealerText}. Dealer is likely to bust with this weak upcard.`;
+            } else if (action === 'SU') {
+                return `Surrender if allowed, otherwise hit. This is a tough spot against dealer ${dealerText}.`;
+            } else if (surrenderNotAllowed) {
+                return `Hit on ${total} against dealer ${dealerText}. (Note: Optimal play is surrender, but since it's not allowed, hit is the best alternative.)`;
+            } else {
+                return `Hit on ${total} against dealer ${dealerText}. Dealer's strong card requires you to improve.`;
+            }
         } else {
             return `Always stand on ${total} - you have a strong hand that wins most of the time.`;
         }
@@ -588,15 +675,20 @@ class StrategyGuideApp {
 
     generatePracticeScenarios() {
         const scenarios = [];
+        const surrenderAllowed = document.getElementById('practice-surrender-allowed')?.checked ?? true;
         
         // Hard totals scenarios
         for (let total = 9; total <= 16; total++) {
             for (let dealer = 2; dealer <= 11; dealer++) {
+                const originalAction = this.basicStrategyData.hard[total][dealer];
+                const correctAction = this.getActionWithSurrenderRule('hard', total, dealer, originalAction);
+                
                 scenarios.push({
                     type: 'hard',
                     playerHand: total,
                     dealerCard: dealer,
-                    correctAction: this.basicStrategyData.hard[total][dealer]
+                    correctAction: correctAction,
+                    surrenderAllowed: surrenderAllowed
                 });
             }
         }
@@ -604,11 +696,15 @@ class StrategyGuideApp {
         // Soft totals scenarios
         for (let total = 13; total <= 18; total++) {
             for (let dealer = 2; dealer <= 11; dealer++) {
+                const originalAction = this.basicStrategyData.soft[total][dealer];
+                const correctAction = this.getActionWithSurrenderRule('soft', total, dealer, originalAction);
+                
                 scenarios.push({
                     type: 'soft',
                     playerHand: total,
                     dealerCard: dealer,
-                    correctAction: this.basicStrategyData.soft[total][dealer]
+                    correctAction: correctAction,
+                    surrenderAllowed: surrenderAllowed
                 });
             }
         }
@@ -616,11 +712,15 @@ class StrategyGuideApp {
         // Pairs scenarios
         ['A', '2', '3', '6', '7', '8', '9'].forEach(pair => {
             for (let dealer = 2; dealer <= 11; dealer++) {
+                const originalAction = this.basicStrategyData.pairs[pair][dealer];
+                const correctAction = this.getActionWithSurrenderRule('pairs', pair, dealer, originalAction);
+                
                 scenarios.push({
                     type: 'pairs',
                     playerHand: pair,
                     dealerCard: dealer,
-                    correctAction: this.basicStrategyData.pairs[pair][dealer]
+                    correctAction: correctAction,
+                    surrenderAllowed: surrenderAllowed
                 });
             }
         });
@@ -681,7 +781,16 @@ class StrategyGuideApp {
     handlePracticeAnswer(userAction) {
         const scenario = this.practiceMode.currentScenario;
         const userActionCode = this.convertActionToCode(userAction);
-        const isCorrect = userActionCode === scenario.correctAction;
+        const surrenderAllowed = document.getElementById('practice-surrender-allowed')?.checked ?? true;
+        
+        // Validate the action considering surrender availability
+        let isCorrect = userActionCode === scenario.correctAction;
+        
+        // Special handling for surrender scenarios
+        if (!surrenderAllowed && userAction === 'surrender') {
+            // User clicked surrender but it's not allowed - this is always wrong
+            isCorrect = false;
+        }
         
         this.practiceMode.stats.total++;
         if (isCorrect) {

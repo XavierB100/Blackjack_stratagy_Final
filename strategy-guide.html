@@ -152,6 +152,16 @@
                         <button class="tab-btn" data-chart="soft">Soft Totals</button>
                         <button class="tab-btn" data-chart="pairs">Pairs</button>
                     </div>
+                    
+                    <div class="chart-settings">
+                        <div class="rule-toggle">
+                            <label for="surrender-allowed">
+                                <input type="checkbox" id="surrender-allowed" checked> 
+                                Surrender Allowed
+                            </label>
+                            <small class="rule-note">Many casinos don't allow surrender. Uncheck to see alternative actions.</small>
+                        </div>
+                    </div>
 
                     <!-- Hard Totals Chart -->
                     <div class="strategy-chart active" id="hard-chart">
@@ -310,6 +320,9 @@
                             <label>
                                 <input type="checkbox" id="timed-practice"> Timed practice
                             </label>
+                            <label>
+                                <input type="checkbox" id="practice-surrender-allowed" checked> Surrender allowed
+                            </label>
                         </div>
                     </div>
                     
@@ -331,6 +344,7 @@
                                 <button class="action-btn" data-action="stand">Stand</button>
                                 <button class="action-btn" data-action="double">Double</button>
                                 <button class="action-btn" data-action="split">Split</button>
+                                <button class="action-btn" data-action="surrender" id="surrender-btn">Surrender</button>
                             </div>
                             
                             <div class="practice-feedback" id="practice-feedback" style="display: none;">
