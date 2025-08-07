@@ -66,6 +66,17 @@
 
             <section class="content-section">
                 <h2>Interactive Basic Strategy Charts</h2>
+                
+                <div class="chart-settings">
+                    <div class="rule-toggle">
+                        <label for="surrender-allowed">
+                            <input type="checkbox" id="surrender-allowed" checked> 
+                            Surrender Allowed
+                        </label>
+                        <small class="rule-note">Many casinos don't allow surrender. Uncheck to see alternative actions.</small>
+                    </div>
+                </div>
+                
                 <div class="strategy-tools">
                     <div class="quick-lookup-tool">
                         <h3>Quick Strategy Lookup</h3>
@@ -151,16 +162,6 @@
                         <button class="tab-btn active" data-chart="hard">Hard Totals</button>
                         <button class="tab-btn" data-chart="soft">Soft Totals</button>
                         <button class="tab-btn" data-chart="pairs">Pairs</button>
-                    </div>
-                    
-                    <div class="chart-settings">
-                        <div class="rule-toggle">
-                            <label for="surrender-allowed">
-                                <input type="checkbox" id="surrender-allowed" checked> 
-                                Surrender Allowed
-                            </label>
-                            <small class="rule-note">Many casinos don't allow surrender. Uncheck to see alternative actions.</small>
-                        </div>
                     </div>
 
                     <!-- Hard Totals Chart -->
@@ -319,9 +320,6 @@
                             </label>
                             <label>
                                 <input type="checkbox" id="timed-practice"> Timed practice
-                            </label>
-                            <label>
-                                <input type="checkbox" id="practice-surrender-allowed" checked> Surrender allowed
                             </label>
                         </div>
                     </div>

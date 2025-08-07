@@ -339,19 +339,16 @@ class StrategyGuideApp {
             });
         }
 
-        // Practice mode surrender toggle
-        const practiceSurrenderToggle = document.getElementById('practice-surrender-allowed');
-        if (practiceSurrenderToggle) {
-            practiceSurrenderToggle.addEventListener('change', (e) => {
-                this.handlePracticeSurrenderToggle(e.target.checked);
-            });
-        }
+        // Initialize surrender button visibility based on main toggle
+        this.handlePracticeSurrenderToggle(chartSurrenderToggle?.checked ?? true);
     }
 
     handleChartSurrenderToggle(surrenderAllowed) {
         // Re-populate charts with updated surrender settings
         this.populateStrategyCharts();
-        console.log(`Chart surrender toggle: ${surrenderAllowed ? 'enabled' : 'disabled'}`);
+        // Also update practice mode surrender button visibility
+        this.handlePracticeSurrenderToggle(surrenderAllowed);
+        console.log(`Surrender toggle: ${surrenderAllowed ? 'enabled' : 'disabled'}`);
     }
 
     handlePracticeSurrenderToggle(surrenderAllowed) {
@@ -675,7 +672,7 @@ class StrategyGuideApp {
 
     generatePracticeScenarios() {
         const scenarios = [];
-        const surrenderAllowed = document.getElementById('practice-surrender-allowed')?.checked ?? true;
+        const surrenderAllowed = document.getElementById('surrender-allowed')?.checked ?? true;
         
         // Hard totals scenarios
         for (let total = 9; total <= 16; total++) {
@@ -781,7 +778,7 @@ class StrategyGuideApp {
     handlePracticeAnswer(userAction) {
         const scenario = this.practiceMode.currentScenario;
         const userActionCode = this.convertActionToCode(userAction);
-        const surrenderAllowed = document.getElementById('practice-surrender-allowed')?.checked ?? true;
+        const surrenderAllowed = document.getElementById('surrender-allowed')?.checked ?? true;
         
         // Validate the action considering surrender availability
         let isCorrect = userActionCode === scenario.correctAction;
