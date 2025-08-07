@@ -1,49 +1,37 @@
 /**
- * Game Controller - Core game logic and state management
+ * GameController - Refactored coordinator using specialized modules
+ * Reduced from 1,274 lines by extracting GameState, ActionHandler, and GameFlow
+ * Now focuses on coordination and delegation rather than implementation
  */
 
 import { Deck } from './Deck.js';
 import { Hand } from './Hand.js';
 import { GameRules } from './GameRules.js';
 import { CardCounting } from './CardCounting.js';
+import { GameState } from '../game/GameState.js';
+import { ActionHandler } from '../game/ActionHandler.js';
+import { GameFlow } from '../game/GameFlow.js';
 
 export class GameController {
     constructor(statistics, uiController, strategyHints) {
         this.statistics = statistics;
         this.ui = uiController;
         this.strategyHints = strategyHints;
-        this.cardCounting = new CardCounting();
         
-        // Game state
+        // Initialize specialized modules
+        this.gameState = new GameState();
+        this.cardCounting = new CardCounting();
+        this.rules = new GameRules();
+        
+        // Core game objects
         this.deck = null;
         this.dealerHand = null;
         this.playerHands = [];
         this.currentHandIndex = 0;
-        this.gamePhase = 'waiting'; // waiting, betting, dealing, playing, dealer, finished
-        this.gameSettings = {
-            deckCount: 6,
-            showBasicStrategyHints: true,
-            cardCountingMode: false,
-            minimumBet: 5,
-            maximumBet: 500,
-            gameSpeed: 'normal',
-            autoPlay: false,
-            soundEffects: false
-        };
         
-        // Game rules
-        this.rules = new GameRules();
-        
-        // Current game data
-        this.currentBet = 25;
-        this.insuranceBet = 0;
-        this.gameId = null;
-        this.handHistory = [];
-        
-        // Game state management
-        this.gameHistory = [];
-        this.canUndo = false;
-        this.lastAction = null;
+        // Initialize coordinating modules (will set deck after init)
+        this.actionHandler = null;
+        this.gameFlow = null;
         
         this.isInitialized = false;
     }
@@ -53,7 +41,21 @@ export class GameController {
      */
     async init() {
         try {
-            console.log('🎮 Initializing Game Controller...');
+            console.log('🎮 Initializing GameController (Optimized)...');
+            
+            // Initialize game state
+            this.gameState.init();
+            
+            // Initialize deck and hands
+            this.initializeGameObjects();
+            
+            // Initialize coordinating modules with deck reference
+            this.actionHandler = new ActionHandler(
+                this.gameState, this.deck, this.ui, this.statistics, this.rules, this.cardCounting
+            );
+            this.gameFlow = new GameFlow(
+                this.gameState, this.deck, this.ui, this.statistics, this.rules, this.cardCounting
+            );
             
             // Initialize card counting module
             await this.cardCounting.init();
@@ -61,15 +63,38 @@ export class GameController {
             // Set up event listeners
             this.setupEventListeners();
             
-            // Initialize game components
-            this.initializeGame();
+            // Update game references in modules
+            this.updateModuleReferences();
             
             this.isInitialized = true;
-            console.log('✅ Game Controller initialized');
+            console.log('✅ GameController initialized with modular architecture');
         } catch (error) {
-            console.error('❌ Failed to initialize Game Controller:', error);
+            console.error('❌ Failed to initialize GameController:', error);
             throw error;
         }
+    }
+
+    /**
+     * Initialize core game objects
+     */
+    initializeGameObjects() {
+        this.deck = new Deck(this.gameState.getSetting('deckCount'));
+        this.deck.shuffle();
+        
+        this.dealerHand = new Hand();
+        this.playerHands = [new Hand()];
+        this.currentHandIndex = 0;
+        
+        this.ui.clearAll();
+        this.ui.showMessage('Welcome! Click "New Game" to start.', 'info');
+    }
+
+    /**
+     * Update module references with current game objects
+     */
+    updateModuleReferences() {
+        this.actionHandler.updateGameRefs(this.dealerHand, this.playerHands, this.currentHandIndex);
+        this.gameFlow.updateGameRefs(this.dealerHand, this.playerHands, this.currentHandIndex);
     }
 
     /**
@@ -79,11 +104,13 @@ export class GameController {
         // Main game buttons
         document.getElementById('new-game-btn')?.addEventListener('click', () => this.startNewGame());
         document.getElementById('deal-btn')?.addEventListener('click', () => this.dealNewHand());
-        document.getElementById('hit-btn')?.addEventListener('click', () => this.hit());
-        document.getElementById('stand-btn')?.addEventListener('click', () => this.stand());
-        document.getElementById('double-btn')?.addEventListener('click', () => this.doubleDown());
-        document.getElementById('split-btn')?.addEventListener('click', () => this.split());
-        document.getElementById('insurance-btn')?.addEventListener('click', () => this.takeInsurance());
+        
+        // Player action buttons (delegate to ActionHandler)
+        document.getElementById('hit-btn')?.addEventListener('click', () => this.executePlayerAction('hit'));
+        document.getElementById('stand-btn')?.addEventListener('click', () => this.executePlayerAction('stand'));
+        document.getElementById('double-btn')?.addEventListener('click', () => this.executePlayerAction('doubleDown'));
+        document.getElementById('split-btn')?.addEventListener('click', () => this.executePlayerAction('split'));
+        document.getElementById('insurance-btn')?.addEventListener('click', () => this.executePlayerAction('insurance'));
 
         // Betting controls
         document.getElementById('bet-amount')?.addEventListener('change', (e) => {
@@ -98,749 +125,172 @@ export class GameController {
             });
         });
 
-        // Game options
+        // Settings controls
         document.getElementById('deck-count')?.addEventListener('change', (e) => {
-            this.setDeckCount(parseInt(e.target.value));
+            this.updateSetting('deckCount', parseInt(e.target.value));
         });
 
         document.getElementById('basic-strategy-hints')?.addEventListener('change', (e) => {
-            this.toggleBasicStrategyHints(e.target.checked);
+            this.updateSetting('showBasicStrategyHints', e.target.checked);
         });
 
         document.getElementById('card-counting-practice')?.addEventListener('change', (e) => {
-            this.toggleCardCountingMode(e.target.checked);
+            this.updateSetting('cardCountingMode', e.target.checked);
         });
         
-        // Enhanced UX controls
         document.getElementById('game-speed')?.addEventListener('change', (e) => {
-            this.setGameSpeed(e.target.value);
+            this.updateSetting('gameSpeed', e.target.value);
         });
         
         document.getElementById('auto-play')?.addEventListener('change', (e) => {
-            this.toggleAutoPlay(e.target.checked);
+            this.gameFlow.setAutoPlay(e.target.checked);
         });
         
         document.getElementById('sound-effects')?.addEventListener('change', (e) => {
-            this.toggleSoundEffects(e.target.checked);
+            this.updateSetting('soundEffects', e.target.checked);
         });
         
+        // Utility buttons
         document.getElementById('undo-btn')?.addEventListener('click', () => this.undoLastAction());
         document.getElementById('hint-btn')?.addEventListener('click', () => this.showHintModal());
         document.getElementById('stats-btn')?.addEventListener('click', () => this.showStatsModal());
     }
 
     /**
-     * Initialize a new game
+     * Start a new game session (delegate to GameFlow)
      */
-    initializeGame() {
-        this.deck = new Deck(this.gameSettings.deckCount);
-        this.deck.shuffle();
-        
-        this.dealerHand = new Hand();
-        this.playerHands = [new Hand()];
-        this.currentHandIndex = 0;
-        this.gamePhase = 'waiting';
-        this.gameId = Date.now();
-        
-        this.updateUI();
-        this.ui.showMessage('Welcome! Click "Deal" to start playing.', 'info');
-    }
-
-    /**
-     * Start a new game session
-     */
-    startNewGame() {
+    async startNewGame() {
         console.log('🆕 Starting new game session');
         
-        // Reset statistics for new session
-        this.statistics.startNewSession();
+        const success = await this.gameFlow.initializeNewGame();
         
-        // Initialize new game
-        this.initializeGame();
+        if (success) {
+            // Update local references
+            this.dealerHand = new Hand();
+            this.playerHands = [new Hand()];
+            this.currentHandIndex = 0;
+            
+            this.updateModuleReferences();
+            this.updateAllDisplays();
+        }
         
-        // Enable deal button
-        this.ui.setButtonState('deal-btn', true);
-        this.ui.setButtonState('new-game-btn', false);
-        
-        this.ui.showMessage('New game started! Place your bet and click "Deal".', 'success');
+        return success;
     }
 
     /**
-     * Deal a new hand
+     * Deal a new hand (delegate to GameFlow)
      */
-    dealNewHand() {
-        if (this.gamePhase !== 'waiting' && this.gamePhase !== 'finished') {
-            console.warn('Cannot deal while game is in progress');
-            return;
+    async dealNewHand() {
+        const success = await this.gameFlow.startDealingSequence();
+        
+        if (success) {
+            this.updateModuleReferences();
         }
-
-        console.log('🎴 Dealing new hand');
         
-        // Check if deck needs reshuffling
-        if (this.deck.needsReshuffle()) {
-            this.deck.shuffle();
-            this.ui.showMessage('Reshuffling deck...', 'info', 2000);
-            
-            // Reset card count if in counting mode
-            if (this.gameSettings.cardCountingMode) {
-                this.cardCounting.reset();
-                this.statistics.resetCardCount();
-                this.updateCardCountingDisplay();
-            }
-        }
-
-        // Reset hands
-        this.dealerHand = new Hand();
-        this.playerHands = [new Hand()];
-        this.currentHandIndex = 0;
-        this.insuranceBet = 0;
-        
-        // Update UI to show dealing phase
-        this.gamePhase = 'dealing';
-        this.ui.updateGamePhase('dealing', 'Dealing Cards');
-        
-        // Deal initial cards with proper timing
-        this.dealInitialCards();
+        return success;
     }
 
     /**
-     * Deal initial two cards to player and dealer with enhanced timing
+     * Execute player action (delegate to ActionHandler)
      */
-    async dealInitialCards() {
-        try {
-            // Show dealing phase
-            this.ui.showLoadingOverlay('Dealing Cards...');
-            
-            // Deal cards with realistic casino timing
-            await this.dealCardToPlayer(0, true);
-            await this.delay(400);
-            
-            await this.dealCardToDealer(false); // Face down (hole card)
-            await this.delay(400);
-            
-            await this.dealCardToPlayer(0, true);
-            await this.delay(400);
-            
-            await this.dealCardToDealer(true); // Face up
-            await this.delay(200);
-            
-            this.ui.hideLoadingOverlay();
-            
-            // Check for blackjacks and insurance
-            this.checkForBlackjacks();
-        } catch (error) {
-            console.error('Error dealing initial cards:', error);
-            this.ui.hideLoadingOverlay();
-            this.ui.showMessage('Error dealing cards. Please try again.', 'error');
-        }
-    }
-
-    /**
-     * Deal a card to the player
-     */
-    async dealCardToPlayer(handIndex, faceUp = true) {
-        const card = this.deck.dealCard();
-        this.playerHands[handIndex].addCard(card);
+    async executePlayerAction(action) {
+        // Update references before action
+        this.actionHandler.updateGameRefs(this.dealerHand, this.playerHands, this.currentHandIndex);
         
-        // Update card count if in counting mode
-        if (this.gameSettings.cardCountingMode) {
-            this.cardCounting.updateCount(card, faceUp);
-            this.statistics.updateCardCount(card);
-            
-            // Update deck tracking
-            this.cardCounting.updateDecksRemaining(this.deck.getDecksRemaining());
-        }
-        
-        const cardElement = this.ui.addCardToPlayer(card, handIndex, faceUp);
-        
-        // Highlight card for counting practice if enabled
-        if (this.gameSettings.cardCountingMode && faceUp) {
-            this.ui.highlightCardForCounting(cardElement, this.cardCounting.getHiLoValue(card));
-        }
-        
-        this.updatePlayerTotal(handIndex);
-        this.updateCardCountingDisplay();
-        
-        return card;
-    }
-
-    /**
-     * Deal a card to the dealer
-     */
-    async dealCardToDealer(faceUp = true) {
-        const card = this.deck.dealCard();
-        this.dealerHand.addCard(card);
-        
-        // Only update count for face-up cards
-        if (faceUp && this.gameSettings.cardCountingMode) {
-            this.cardCounting.updateCount(card, faceUp);
-            this.statistics.updateCardCount(card);
-            
-            // Update deck tracking
-            this.cardCounting.updateDecksRemaining(this.deck.getDecksRemaining());
-        }
-        
-        const cardElement = this.ui.addCardToDealer(card, faceUp);
-        
-        // Highlight card for counting practice if enabled
-        if (this.gameSettings.cardCountingMode && faceUp) {
-            this.ui.highlightCardForCounting(cardElement, this.cardCounting.getHiLoValue(card));
-        }
-        
-        if (faceUp) {
-            this.updateDealerTotal();
-        }
-        
-        this.updateCardCountingDisplay();
-        
-        return card;
-    }
-
-    /**
-     * Check for blackjacks and insurance after initial deal
-     */
-    async checkForBlackjacks() {
-        const playerBlackjack = this.playerHands[0].isBlackjack();
-        const dealerUpCard = this.dealerHand.cards[1];
-        const dealerBlackjack = this.dealerHand.isBlackjack();
-        
-        // Check for insurance opportunity first
-        if (dealerUpCard.rank === 'A' && !playerBlackjack) {
-            await this.offerInsurance();
-        }
-
-        if (playerBlackjack && dealerBlackjack) {
-            await this.delay(500);
-            this.ui.revealDealerHoleCard();
-            this.updateDealerTotal();
-            this.ui.showResultCelebration('push', 'Push!');
-            this.endHand('push', 'Both have blackjack - Push!');
-        } else if (playerBlackjack) {
-            await this.delay(500);
-            this.ui.showResultCelebration('blackjack', 'BLACKJACK!');
-            this.ui.addCardEffect(0, 'winning');
-            this.endHand('blackjack', 'Blackjack! You win!');
-        } else if (dealerBlackjack) {
-            await this.delay(500);
-            this.ui.revealDealerHoleCard();
-            this.updateDealerTotal();
-            this.ui.showResultCelebration('lose', 'Dealer Blackjack');
-            this.endHand('dealer_blackjack', 'Dealer has blackjack. You lose.');
-        } else {
-            // Normal play begins
-            this.gamePhase = 'playing';
-            this.ui.updateGamePhase('playing', 'Your Turn');
-            this.enablePlayerActions();
-            await this.delay(300);
-            this.showBasicStrategyHint();
-        }
-    }
-
-    /**
-     * Player hits (takes another card) with enhanced feedback
-     */
-    async hit() {
-        // Save state for undo
-        this.saveGameState();
-        this.lastAction = 'hit';
-        if (this.gamePhase !== 'playing') return;
-
-        console.log(`👋 Player hits on hand ${this.currentHandIndex}`);
-        
-        // Track strategy accuracy
-        const hint = this.getLastStrategyHint();
+        // Set strategy hint for accuracy tracking
+        const hint = this.getStrategyHint();
         if (hint) {
-            this.statistics.recordStrategyDecision('Hit', hint.action, hint.handType);
+            this.actionHandler.setLastStrategyHint(hint);
         }
         
-        // Disable buttons during card dealing
-        this.disablePlayerActions();
-        this.ui.setButtonLoading('hit-btn', true);
+        // Execute the action
+        const result = await this.actionHandler.executeAction(action);
         
-        const card = await this.dealCardToPlayer(this.currentHandIndex);
-        const hand = this.playerHands[this.currentHandIndex];
+        // Handle action result
+        await this.handleActionResult(result);
         
-        await this.delay(200);
-        
-        this.ui.setButtonLoading('hit-btn', false);
-        
-        if (hand.isBusted()) {
-            this.ui.addCardEffect(this.currentHandIndex, 'busted');
-            this.ui.showMessage('Bust!', 'error', 2000);
-            await this.delay(1000);
-            this.moveToNextHand();
-        } else if (hand.getValue() === 21) {
-            this.ui.addCardEffect(this.currentHandIndex, 'winning');
-            this.ui.showMessage('21!', 'success', 1500);
-            await this.delay(1000);
-            this.moveToNextHand();
-        } else {
-            this.enablePlayerActions();
-            await this.delay(300);
-            this.showBasicStrategyHint();
-        }
+        return result;
     }
 
     /**
-     * Player stands (ends turn) with enhanced feedback
+     * Handle the result of a player action
      */
-    async stand() {
-        // Save state for undo
-        this.saveGameState();
-        this.lastAction = 'stand';
-        if (this.gamePhase !== 'playing') return;
-
-        console.log(`✋ Player stands on hand ${this.currentHandIndex}`);
-        
-        // Track strategy accuracy
-        const hint = this.getLastStrategyHint();
-        if (hint) {
-            this.statistics.recordStrategyDecision('Stand', hint.action, hint.handType);
-        }
-        
-        this.ui.setButtonLoading('stand-btn', true);
-        await this.delay(300);
-        this.ui.setButtonLoading('stand-btn', false);
-        
-        this.moveToNextHand();
-    }
-
-    /**
-     * Player doubles down with enhanced feedback
-     */
-    async doubleDown() {
-        // Save state for undo
-        this.saveGameState();
-        this.lastAction = 'double';
-        if (this.gamePhase !== 'playing') return;
-        if (!this.canDoubleDown()) {
-            this.ui.showMessage('Cannot double down', 'error', 2000);
-            return;
-        }
-
-        console.log(`💰 Player doubles down on hand ${this.currentHandIndex}`);
-        
-        // Track strategy accuracy
-        const hint = this.getLastStrategyHint();
-        if (hint) {
-            this.statistics.recordStrategyDecision('Double Down', hint.action, hint.handType);
-        }
-        
-        this.disablePlayerActions();
-        this.ui.setButtonLoading('double-btn', true);
-        
-        const hand = this.playerHands[this.currentHandIndex];
-        hand.isDoubled = true;
-        
-        // Double the bet for this hand
-        const additionalBet = this.currentBet / this.playerHands.length;
-        this.currentBet += additionalBet;
-        this.ui.updateCurrentBet(this.currentBet);
-        this.ui.showMessage(`Bet doubled to $${this.currentBet}!`, 'info', 2000);
-        
-        await this.delay(500);
-        
-        // Deal exactly one more card
-        await this.dealCardToPlayer(this.currentHandIndex);
-        
-        this.ui.setButtonLoading('double-btn', false);
-        
-        // Check result immediately
-        if (hand.isBusted()) {
-            this.ui.addCardEffect(this.currentHandIndex, 'busted');
-            this.ui.showMessage('Bust on double down!', 'error', 2000);
-        } else if (hand.getValue() === 21) {
-            this.ui.addCardEffect(this.currentHandIndex, 'winning');
-            this.ui.showMessage('21 on double down!', 'success', 2000);
-        }
-        
-        await this.delay(1500);
-        this.moveToNextHand();
-    }
-
-    /**
-     * Player splits pair
-     */
-    async split() {
-        if (this.gamePhase !== 'playing') return;
-        if (!this.canSplit()) {
-            this.ui.showMessage('Cannot split', 'error', 2000);
-            return;
-        }
-
-        console.log(`✂️ Player splits hand ${this.currentHandIndex}`);
-        
-        const originalHand = this.playerHands[this.currentHandIndex];
-        const cardToMove = originalHand.cards.pop();
-        
-        // Mark both hands as split hands
-        originalHand.isSplit = true;
-        
-        // Create new hand with the second card
-        const newHand = new Hand();
-        newHand.addCard(cardToMove);
-        newHand.isSplit = true;
-        
-        // Insert new hand right after current hand
-        this.playerHands.splice(this.currentHandIndex + 1, 0, newHand);
-        
-        // Deal second card to both hands
-        await this.dealCardToPlayer(this.currentHandIndex);
-        await this.delay(300);
-        await this.dealCardToPlayer(this.currentHandIndex + 1);
-        
-        // Double the bet (split requires equal bet on both hands)
-        this.currentBet *= 2;
-        this.ui.updateCurrentBet(this.currentBet);
-        
-        this.ui.showSplitHands(this.playerHands);
-        this.updateUI();
-        this.enablePlayerActions();
-    }
-    
-    /**
-     * Take insurance
-     */
-    takeInsurance() {
-        if (this.gamePhase !== 'playing') return;
-        
-        const dealerUpCard = this.dealerHand.cards[1];
-        if (!this.rules.canTakeInsurance(dealerUpCard, this.playerHands[0])) {
-            this.ui.showMessage('Insurance not available', 'error', 2000);
-            return;
-        }
-        
-        console.log('🛡️ Player takes insurance');
-        
-        this.insuranceBet = Math.floor(this.currentBet / 2);
-        this.ui.showMessage(`Insurance bet: $${this.insuranceBet}`, 'info', 3000);
-        
-        // Insurance is resolved immediately when dealer checks for blackjack
-        if (this.dealerHand.isBlackjack()) {
-            const insurancePayout = this.rules.calculateInsurancePayout(this.insuranceBet);
-            this.statistics.updateBank(insurancePayout);
-            this.ui.showMessage(`Insurance pays $${insurancePayout}!`, 'success', 3000);
-        } else {
-            this.statistics.updateBank(-this.insuranceBet);
-            this.ui.showMessage('Insurance lost', 'error', 2000);
-        }
-        
-        // Disable insurance button after taking insurance
-        this.ui.setButtonState('insurance-btn', false);
-    }
-
-    /**
-     * Move to next hand or dealer play
-     */
-    moveToNextHand() {
-        this.currentHandIndex++;
-        
-        if (this.currentHandIndex >= this.playerHands.length) {
-            // All player hands completed, dealer plays
-            this.dealerPlay();
-        } else {
-            // Move to next hand
-            this.ui.highlightCurrentHand(this.currentHandIndex);
-            this.showBasicStrategyHint();
-        }
-    }
-
-    /**
-     * Dealer plays according to rules with enhanced presentation
-     */
-    async dealerPlay() {
-        this.gamePhase = 'dealer';
-        this.ui.updateGamePhase('dealer', 'Dealer\'s Turn');
-        this.disablePlayerActions();
-        
-        this.ui.showMessage('Dealer reveals hole card...', 'info');
-        await this.delay(1000);
-        
-        // Reveal hole card with dramatic timing
-        this.ui.revealDealerHoleCard();
-        this.updateDealerTotal();
-        
-        // Update card count for hole card
-        if (this.gameSettings.cardCountingMode) {
-            this.cardCounting.updateCount(this.dealerHand.cards[0], true);
-            this.statistics.updateCardCount(this.dealerHand.cards[0]);
-            this.updateCardCountingDisplay();
-        }
-        
-        await this.delay(1500);
-        
-        // Check if dealer has blackjack or needs to draw
-        const dealerValue = this.dealerHand.getValue();
-        
-        if (dealerValue === 21) {
-            this.ui.showMessage('Dealer has 21!', 'info', 2000);
-        } else if (dealerValue < 17 || (dealerValue === 17 && this.dealerHand.isSoft() && !this.rules.rules.dealerStandsOnSoft17)) {
-            this.ui.showMessage('Dealer must hit...', 'info');
-            await this.delay(1000);
-            
-            // Dealer draws cards according to rules
-            while (this.dealerHand.getValue() < 17 || 
-                   (this.dealerHand.getValue() === 17 && this.dealerHand.isSoft() && !this.rules.rules.dealerStandsOnSoft17)) {
-                
-                await this.delay(1200);
-                await this.dealCardToDealer(true);
-                await this.delay(800);
-                
-                const newValue = this.dealerHand.getValue();
-                if (newValue > 21) {
-                    this.ui.addCardEffect(undefined, 'busted'); // Dealer cards
-                    this.ui.showMessage('Dealer busts!', 'success', 2000);
-                    break;
-                } else if (newValue === 21) {
-                    this.ui.showMessage('Dealer makes 21!', 'info', 1500);
-                    break;
-                }
-            }
-        } else {
-            this.ui.showMessage(`Dealer stands on ${dealerValue}`, 'info', 2000);
-        }
-        
-        await this.delay(2000);
-        
-        // Determine winners
-        this.determineWinners();
-    }
-
-    /**
-     * Determine winners and payouts
-     */
-    determineWinners() {
-        const dealerValue = this.dealerHand.getValue();
-        const dealerBusted = this.dealerHand.isBusted();
-        
-        let totalPayout = 0;
-        let totalWagered = 0;
-        let handsWon = 0;
-        let handsLost = 0;
-        let handsPushed = 0;
-        
-        const baseBet = this.currentBet / (this.playerHands.length + (this.playerHands.filter(h => h.isDoubled).length));
-        
-        this.playerHands.forEach((hand, index) => {
-            const playerValue = hand.getValue();
-            const playerBusted = hand.isBusted();
-            const handBet = baseBet * (hand.isDoubled ? 2 : 1);
-            
-            totalWagered += handBet;
-            
-            let result, message, payout = 0;
-            
-            if (playerBusted) {
-                result = 'lose';
-                message = 'Bust - Lose';
-                handsLost++;
-            } else if (dealerBusted) {
-                result = 'win';
-                message = 'Dealer bust - Win!';
-                payout = handBet * 2; // Return bet + winnings
-                handsWon++;
-            } else if (playerValue > dealerValue) {
-                result = 'win';
-                message = 'Win!';
-                payout = handBet * 2; // Return bet + winnings
-                handsWon++;
-            } else if (playerValue < dealerValue) {
-                result = 'lose';
-                message = 'Lose';
-                handsLost++;
-            } else {
-                result = 'push';
-                message = 'Push';
-                payout = handBet; // Return bet only
-                handsPushed++;
-            }
-            
-            totalPayout += payout;
-            this.ui.showHandResult(index, result, message);
-        });
-        
-        // Update statistics
-        this.statistics.recordHand({
-            playerHands: this.playerHands.map(h => ({ 
-                cards: h.cards, 
-                value: h.getValue(), 
-                busted: h.isBusted(),
-                isDoubled: h.isDoubled,
-                isSplit: h.isSplit
-            })),
-            dealerHand: {
-                cards: this.dealerHand.cards,
-                value: dealerValue,
-                busted: dealerBusted
-            },
-            bet: totalWagered,
-            payout: totalPayout,
-            handsWon,
-            handsLost,
-            handsPushed
-        });
-        
-        // Record counting statistics if counting is enabled
-        if (this.gameSettings.cardCountingMode) {
-            const result = handsWon > 0 ? 'win' : handsLost > 0 ? 'loss' : 'push';
-            this.statistics.recordCountingHand({
-                trueCount: this.cardCounting.getTrueCount(),
-                betAmount: totalWagered,
-                result: result
-            });
-            
-            // Record bet for tracking
-            this.cardCounting.recordBet(totalWagered);
-        }
-        
-        // Update bank (net gain/loss)
-        this.statistics.updateBank(totalPayout - totalWagered);
-        
-        // End game
-        this.endGame();
-    }
-
-    /**
-     * End the current game
-     */
-    endGame() {
-        this.gamePhase = 'finished';
-        this.disablePlayerActions();
-        this.ui.setButtonState('deal-btn', true);
-        this.updateUI();
-        
-        console.log('🏁 Hand finished');
-    }
-
-    /**
-     * End hand with specific result
-     */
-    endHand(result, message) {
-        let payout = 0;
-        
+    async handleActionResult(result) {
         switch (result) {
-            case 'blackjack':
-                payout = Math.floor(this.currentBet * 1.5); // 3:2 payout
-                this.statistics.updateBank(payout);
+            case 'continue':
+                // Action completed, player can continue
+                this.showBasicStrategyHint();
                 break;
-            case 'push':
-                payout = 0; // Return bet
+                
+            case 'complete':
+            case 'bust':
+                // Hand/action completed, move to next hand or dealer
+                this.currentHandIndex = this.actionHandler.currentHandIndex;
+                await this.gameFlow.moveToNextHand();
+                this.updateModuleReferences();
                 break;
-            case 'dealer_blackjack':
-                payout = -this.currentBet;
-                this.statistics.updateBank(payout);
+                
+            case 'error':
+                // Error occurred, enable actions again
+                this.actionHandler.enablePlayerActions();
                 break;
         }
         
-        this.ui.showMessage(message, result === 'blackjack' ? 'success' : 'info');
-        this.endGame();
+        this.updateAllDisplays();
     }
 
     /**
-     * Check if player can double down
+     * Get basic strategy hint
      */
-    canDoubleDown() {
-        const hand = this.playerHands[this.currentHandIndex];
-        const additionalBet = this.currentBet / this.playerHands.length;
-        return hand.cards.length === 2 && 
-               !hand.isDoubled && 
-               this.statistics.getBankAmount() >= additionalBet;
-    }
+    getStrategyHint() {
+        if (!this.gameState.getSetting('showBasicStrategyHints') || !this.gameState.isInPhase('playing')) {
+            return null;
+        }
 
-    /**
-     * Check if player can split
-     */
-    canSplit() {
-        const hand = this.playerHands[this.currentHandIndex];
-        return hand.cards.length === 2 && 
-               hand.cards[0].rank === hand.cards[1].rank &&
-               this.playerHands.length < 4 &&
-               !hand.isSplit &&
-               this.statistics.getBankAmount() >= this.currentBet;
-    }
-    
-    /**
-     * Check if player can take insurance
-     */
-    canTakeInsurance() {
-        if (this.dealerHand.cards.length < 2) return false;
+        const playerHand = this.playerHands[this.currentHandIndex];
         const dealerUpCard = this.dealerHand.cards[1];
-        const playerHand = this.playerHands[this.currentHandIndex];
-        
-        return this.rules.canTakeInsurance(dealerUpCard, playerHand) && 
-               this.insuranceBet === 0 && // Haven't taken insurance yet
-               this.statistics.getBankAmount() >= Math.floor(this.currentBet / 2);
-    }
-
-    /**
-     * Enable player action buttons
-     */
-    enablePlayerActions() {
-        this.ui.setButtonState('hit-btn', true);
-        this.ui.setButtonState('stand-btn', true);
-        this.ui.setButtonState('double-btn', this.canDoubleDown());
-        this.ui.setButtonState('split-btn', this.canSplit());
-        this.ui.setButtonState('insurance-btn', this.canTakeInsurance());
-        this.ui.setButtonState('deal-btn', false);
-    }
-
-    /**
-     * Disable player action buttons
-     */
-    disablePlayerActions() {
-        this.ui.setButtonState('hit-btn', false);
-        this.ui.setButtonState('stand-btn', false);
-        this.ui.setButtonState('double-btn', false);
-        this.ui.setButtonState('split-btn', false);
-        this.ui.setButtonState('insurance-btn', false);
-    }
-
-    /**
-     * Show basic strategy hint with enhanced information
-     */
-    showBasicStrategyHint() {
-        if (!this.gameSettings.showBasicStrategyHints) return;
-
-        const playerHand = this.playerHands[this.currentHandIndex];
-        const dealerUpCard = this.dealerHand.cards[1]; // Second card is face up
         
         if (playerHand && dealerUpCard) {
-            const canDouble = this.canDoubleDown();
-            const canSplit = this.canSplit();
-            
             const hint = this.strategyHints.getBasicStrategyHint(
                 playerHand, 
                 dealerUpCard, 
-                canDouble, 
-                canSplit
+                this.actionHandler.canDoubleDown(),
+                this.actionHandler.canSplit()
             );
             
             // Check for index play deviations if counting is enabled
-            if (this.gameSettings.cardCountingMode) {
+            if (this.gameState.getSetting('cardCountingMode')) {
                 const indexPlay = this.cardCounting.getIndexPlayRecommendation(playerHand, dealerUpCard);
                 if (indexPlay.hasDeviation) {
-                    // Override basic strategy with index play
                     hint.action = indexPlay.action;
                     hint.explanation += ` (Index Play: ${indexPlay.reason})`;
-                    
-                    // Show index play recommendation
                     this.ui.showIndexPlayRecommendation(indexPlay);
                 }
             }
             
-            // Store hint for accuracy tracking
-            this.lastStrategyHint = hint;
-            
-            // Visual indication on buttons
+            return hint;
+        }
+        
+        return null;
+    }
+
+    /**
+     * Show basic strategy hint
+     */
+    showBasicStrategyHint() {
+        const hint = this.getStrategyHint();
+        
+        if (hint) {
+            // Highlight recommended action on buttons
             this.highlightRecommendedAction(hint.action);
             
             // Show modal if enabled
-            if (this.gameSettings.showStrategyModal) {
-                this.ui.showStrategyHint(hint);
+            if (this.gameState.getSetting('showStrategyModal')) {
+                this.ui.showHintModal(hint);
             }
         }
     }
-    
+
     /**
      * Highlight recommended action on buttons
      */
@@ -866,51 +316,79 @@ export class GameController {
             }
         }
     }
-    
+
     /**
-     * Get last strategy hint for tracking
+     * Undo last action (delegate to ActionHandler)
      */
-    getLastStrategyHint() {
-        return this.lastStrategyHint;
-    }
-    
-    /**
-     * Offer insurance when dealer shows Ace
-     */
-    async offerInsurance() {
-        if (!this.canTakeInsurance()) return;
+    async undoLastAction() {
+        const success = await this.actionHandler.undoLastAction();
         
-        this.ui.showMessage('Dealer showing Ace. Insurance available.', 'info');
-        this.ui.setButtonState('insurance-btn', true);
+        if (success) {
+            // Update local references from action handler
+            this.currentHandIndex = this.actionHandler.currentHandIndex;
+            this.updateModuleReferences();
+            this.updateAllDisplays();
+        }
         
-        // Auto-timeout insurance offer after 10 seconds
-        setTimeout(() => {
-            this.ui.setButtonState('insurance-btn', false);
-        }, 10000);
+        return success;
     }
 
     /**
-     * Update player total display
+     * Update game setting
      */
-    updatePlayerTotal(handIndex) {
-        const hand = this.playerHands[handIndex];
-        this.ui.updatePlayerTotal(hand.getValue(), hand.isBusted(), handIndex);
+    updateSetting(key, value) {
+        this.gameState.updateSetting(key, value);
+        
+        // Handle specific setting changes
+        if (key === 'deckCount' && (this.gameState.isInPhase('waiting') || this.gameState.isInPhase('finished'))) {
+            this.initializeGameObjects();
+            this.updateModuleReferences();
+        } else if (key === 'cardCountingMode') {
+            this.cardCounting.setEnabled(value);
+            this.cardCounting.setTotalDecks(this.gameState.getSetting('deckCount'));
+            this.ui.toggleCardCountingDisplay(value);
+            
+            if (value) {
+                this.updateCardCountingDisplay();
+                this.updateBettingRecommendations();
+            }
+        } else if (key === 'gameSpeed') {
+            this.ui.setAnimationSpeed(value);
+        } else if (key === 'soundEffects') {
+            this.ui.setSoundEnabled(value);
+        }
     }
 
     /**
-     * Update dealer total display
+     * Set bet amount
      */
-    updateDealerTotal() {
-        this.ui.updateDealerTotal(this.dealerHand.getValue(), this.dealerHand.isBusted());
+    setBetAmount(amount) {
+        const newAmount = this.gameState.setBetAmount(amount);
+        this.ui.updateCurrentBet(newAmount);
+        
+        // Update bet amount input
+        const betInput = document.getElementById('bet-amount');
+        if (betInput) {
+            betInput.value = newAmount;
+        }
+        
+        return newAmount;
     }
 
     /**
-     * Update all UI elements
+     * Update all UI displays
      */
-    updateUI() {
-        this.updatePlayerTotal(0);
-        this.updateDealerTotal();
-        // Update UI with comprehensive stats including strategy accuracy
+    updateAllDisplays() {
+        // Update hand totals
+        this.playerHands.forEach((hand, index) => {
+            this.ui.updatePlayerTotal(hand.getValue(), hand.isBusted(), index);
+        });
+        
+        if (this.dealerHand) {
+            this.ui.updateDealerTotal(this.dealerHand.getValue(), this.dealerHand.isBusted());
+        }
+        
+        // Update statistics
         const basicStats = this.statistics.getStats();
         const strategyStats = this.statistics.getStrategyStats();
         
@@ -919,19 +397,26 @@ export class GameController {
             strategyAccuracy: strategyStats.overallAccuracy,
             strategyGrade: strategyStats.grade
         });
-        this.ui.updateCurrentBet(this.currentBet);
         
-        if (this.gameSettings.cardCountingMode) {
+        // Update current bet
+        this.ui.updateCurrentBet(this.gameState.getCurrentBet());
+        
+        // Update counting displays if enabled
+        if (this.gameState.getSetting('cardCountingMode')) {
             this.updateCardCountingDisplay();
             this.updateBettingRecommendations();
         }
+        
+        // Update game phase
+        const phaseInfo = this.gameState.getPhaseDisplayInfo();
+        this.ui.updateGamePhase(this.gameState.getPhase(), phaseInfo.description);
     }
-    
+
     /**
      * Update card counting display
      */
     updateCardCountingDisplay() {
-        if (!this.gameSettings.cardCountingMode) return;
+        if (!this.gameState.getSetting('cardCountingMode')) return;
         
         const countStats = this.cardCounting.getCountingStats();
         this.ui.updateCardCountingDisplay(countStats);
@@ -942,15 +427,15 @@ export class GameController {
             this.cardCounting.isPracticeModeEnabled()
         );
     }
-    
+
     /**
      * Update betting recommendations
      */
     updateBettingRecommendations() {
-        if (!this.gameSettings.cardCountingMode) return;
+        if (!this.gameState.getSetting('cardCountingMode')) return;
         
         const bettingRec = this.cardCounting.getBettingRecommendation(
-            this.currentBet,
+            this.gameState.getCurrentBet(),
             this.statistics.getBankAmount()
         );
         
@@ -970,7 +455,7 @@ export class GameController {
         
         // Record betting decision for statistics
         this.statistics.recordBettingDecision({
-            betAmount: this.currentBet,
+            betAmount: this.gameState.getCurrentBet(),
             recommendedBet: bettingRec.recommendedBet,
             trueCount: this.cardCounting.getTrueCount(),
             bankroll: this.statistics.getBankAmount(),
@@ -985,258 +470,20 @@ export class GameController {
     }
 
     /**
-     * Set bet amount
-     */
-    setBetAmount(amount) {
-        const clampedAmount = Math.max(this.gameSettings.minimumBet, 
-                                     Math.min(amount, this.gameSettings.maximumBet));
-        this.currentBet = clampedAmount;
-        this.ui.updateCurrentBet(clampedAmount);
-        document.getElementById('bet-amount').value = clampedAmount;
-    }
-
-    /**
-     * Enhanced delay with speed controls
-     */
-    delay(baseMs) {
-        const speedMultipliers = {
-            'instant': 0,
-            'fast': 0.3,
-            'normal': 1,
-            'slow': 2
-        };
-        
-        const multiplier = speedMultipliers[this.gameSettings.gameSpeed] || 1;
-        const actualDelay = Math.round(baseMs * multiplier);
-        
-        return new Promise(resolve => setTimeout(resolve, actualDelay));
-    }
-
-    pauseGame() {
-        // Pause any ongoing animations or timers
-        console.log('⏸️ Game paused');
-    }
-
-    isGameActive() {
-        return this.gamePhase === 'playing';
-    }
-
-    // Getters and setters for settings
-    setDeckCount(count) { 
-        this.gameSettings.deckCount = count; 
-        if (this.gamePhase === 'waiting' || this.gamePhase === 'finished') {
-            this.initializeGame();
-        }
-    }
-    
-    getDeckCount() { return this.gameSettings.deckCount; }
-    
-    toggleBasicStrategyHints(enabled) { this.gameSettings.showBasicStrategyHints = enabled; }
-    getShowHints() { return this.gameSettings.showBasicStrategyHints; }
-    
-    toggleCardCountingMode(enabled) { 
-        this.gameSettings.cardCountingMode = enabled;
-        this.cardCounting.setEnabled(enabled);
-        this.cardCounting.setTotalDecks(this.gameSettings.deckCount);
-        this.ui.toggleCardCountingDisplay(enabled);
-        
-        // Update display immediately
-        if (enabled) {
-            this.updateCardCountingDisplay();
-            this.updateBettingRecommendations();
-        }
-    }
-    getCardCountingMode() { return this.gameSettings.cardCountingMode; }
-    
-    getLastBetAmount() { return this.currentBet; }
-    
-    /**
-     * Enhanced chip betting with animation
-     */
-    setBetAmount(amount) {
-        const clampedAmount = Math.max(this.gameSettings.minimumBet, 
-                                     Math.min(amount, this.gameSettings.maximumBet));
-        this.currentBet = clampedAmount;
-        this.ui.updateCurrentBet(clampedAmount);
-        this.ui.animateChipSelection(amount);
-        document.getElementById('bet-amount').value = clampedAmount;
-    }
-    
-    setPreferences(prefs) {
-        if (prefs.deckCount) this.setDeckCount(prefs.deckCount);
-        if (prefs.showBasicStrategyHints !== undefined) this.toggleBasicStrategyHints(prefs.showBasicStrategyHints);
-        if (prefs.cardCountingMode !== undefined) this.toggleCardCountingMode(prefs.cardCountingMode);
-        if (prefs.lastBetAmount) this.setBetAmount(prefs.lastBetAmount);
-        if (prefs.gameSpeed) this.setGameSpeed(prefs.gameSpeed);
-        if (prefs.soundEffects !== undefined) this.toggleSoundEffects(prefs.soundEffects);
-    }
-    
-    /**
-     * Game speed control
-     */
-    setGameSpeed(speed) {
-        this.gameSettings.gameSpeed = speed;
-        console.log(`🎮 Game speed set to: ${speed}`);
-        
-        // Update UI animations based on speed
-        this.ui.setAnimationsEnabled(speed !== 'instant');
-    }
-    
-    /**
-     * Toggle auto-play mode
-     */
-    toggleAutoPlay(enabled) {
-        this.gameSettings.autoPlay = enabled;
-        console.log(`🤖 Auto-play ${enabled ? 'enabled' : 'disabled'}`);
-        
-        if (enabled && this.gamePhase === 'playing') {
-            this.executeOptimalAction();
-        }
-    }
-    
-    /**
-     * Execute optimal action in auto-play mode
-     */
-    async executeOptimalAction() {
-        if (!this.gameSettings.autoPlay || this.gamePhase !== 'playing') return;
-        
-        const playerHand = this.playerHands[this.currentHandIndex];
-        const dealerUpCard = this.dealerHand.cards[1];
-        
-        const hint = this.strategyHints.getBasicStrategyHint(
-            playerHand, 
-            dealerUpCard, 
-            this.canDoubleDown(), 
-            this.canSplit()
-        );
-        
-        await this.delay(1000); // Brief pause before auto-action
-        
-        switch (hint.action) {
-            case 'Hit':
-                this.hit();
-                break;
-            case 'Stand':
-                this.stand();
-                break;
-            case 'Double Down':
-                if (this.canDoubleDown()) {
-                    this.doubleDown();
-                } else {
-                    this.hit();
-                }
-                break;
-            case 'Split':
-                if (this.canSplit()) {
-                    this.split();
-                } else {
-                    this.hit();
-                }
-                break;
-            default:
-                this.hit();
-        }
-    }
-    
-    /**
-     * Toggle sound effects
-     */
-    toggleSoundEffects(enabled) {
-        this.gameSettings.soundEffects = enabled;
-        this.ui.setSoundEnabled(enabled);
-        console.log(`🔊 Sound effects ${enabled ? 'enabled' : 'disabled'}`);
-    }
-    
-    /**
-     * Save game state for undo functionality
-     */
-    saveGameState() {
-        this.gameHistory.push({
-            dealerHand: this.dealerHand.clone(),
-            playerHands: this.playerHands.map(hand => hand.clone()),
-            currentHandIndex: this.currentHandIndex,
-            currentBet: this.currentBet,
-            gamePhase: this.gamePhase,
-            bankAmount: this.statistics.getBankAmount(),
-            timestamp: Date.now()
-        });
-        
-        // Keep only last 5 states
-        if (this.gameHistory.length > 5) {
-            this.gameHistory.shift();
-        }
-        
-        this.canUndo = true;
-        this.ui.setButtonState('undo-btn', true);
-    }
-    
-    /**
-     * Undo last action
-     */
-    undoLastAction() {
-        if (!this.canUndo || this.gameHistory.length === 0) {
-            this.ui.showMessage('No action to undo', 'warning', 2000);
-            return;
-        }
-        
-        const lastState = this.gameHistory.pop();
-        
-        // Restore game state
-        this.dealerHand = lastState.dealerHand;
-        this.playerHands = lastState.playerHands;
-        this.currentHandIndex = lastState.currentHandIndex;
-        this.currentBet = lastState.currentBet;
-        this.gamePhase = lastState.gamePhase;
-        
-        // Update UI
-        this.ui.clearDealer();
-        this.ui.clearPlayer();
-        
-        // Redraw cards
-        this.dealerHand.cards.forEach((card, index) => {
-            this.ui.addCardToDealer(card, index > 0); // First card face down
-        });
-        
-        this.playerHands.forEach((hand, handIndex) => {
-            hand.cards.forEach(card => {
-                this.ui.addCardToPlayer(card, handIndex, true);
-            });
-        });
-        
-        this.updateUI();
-        this.enablePlayerActions();
-        
-        this.canUndo = this.gameHistory.length > 0;
-        this.ui.setButtonState('undo-btn', this.canUndo);
-        
-        this.ui.showMessage('Action undone', 'info', 2000);
-        console.log('🔄 Last action undone');
-    }
-    
-    /**
      * Show strategy hint modal
      */
     showHintModal() {
-        if (this.gamePhase !== 'playing') {
+        if (!this.gameState.isInPhase('playing')) {
             this.ui.showMessage('Hints only available during play', 'warning', 2000);
             return;
         }
         
-        const playerHand = this.playerHands[this.currentHandIndex];
-        const dealerUpCard = this.dealerHand.cards[1];
-        
-        if (playerHand && dealerUpCard) {
-            const hint = this.strategyHints.getBasicStrategyHint(
-                playerHand, 
-                dealerUpCard, 
-                this.canDoubleDown(), 
-                this.canSplit()
-            );
-            
-            this.ui.showStrategyHint(hint);
+        const hint = this.getStrategyHint();
+        if (hint) {
+            this.ui.showHintModal(hint);
         }
     }
-    
+
     /**
      * Show detailed statistics modal
      */
@@ -1244,32 +491,214 @@ export class GameController {
         const stats = this.statistics.getStats();
         const strategyStats = this.statistics.getStrategyStats();
         
-        const statsHtml = `
-            <div class="detailed-stats">
-                <div class="stats-section">
-                    <h4>Session Performance</h4>
-                    <p>Hands Played: <strong>${stats.handsPlayed}</strong></p>
-                    <p>Win Rate: <strong>${stats.winRate.toFixed(1)}%</strong></p>
-                    <p>Net Gain: <strong>$${stats.netGain}</strong></p>
-                    <p>Session Duration: <strong>${stats.sessionDuration} minutes</strong></p>
-                </div>
-                
-                <div class="stats-section">
-                    <h4>Strategy Accuracy</h4>
-                    <p>Overall Accuracy: <strong>${strategyStats.overallAccuracy}%</strong></p>
-                    <p>Grade: <strong>${strategyStats.grade}</strong></p>
-                    <p>Total Decisions: <strong>${strategyStats.totalDecisions}</strong></p>
-                </div>
-                
-                <div class="stats-section">
-                    <h4>Action Breakdown</h4>
-                    <p>Hit Accuracy: <strong>${strategyStats.actionAccuracy.hit.toFixed(1)}%</strong></p>
-                    <p>Stand Accuracy: <strong>${strategyStats.actionAccuracy.stand.toFixed(1)}%</strong></p>
-                    <p>Double Accuracy: <strong>${strategyStats.actionAccuracy.double.toFixed(1)}%</strong></p>
-                </div>
-            </div>
-        `;
+        let countingStats = null;
+        if (this.gameState.getSetting('cardCountingMode')) {
+            countingStats = this.cardCounting.getCountingStats();
+        }
         
-        this.ui.showModal('Detailed Statistics', statsHtml);
+        this.ui.showStatsModal({
+            gameStats: stats,
+            strategyStats: strategyStats,
+            countingStats: countingStats
+        });
+    }
+
+    // ===== GETTERS AND SETTERS =====
+
+    /**
+     * Check if game is initialized
+     */
+    isReady() {
+        return this.isInitialized;
+    }
+
+    /**
+     * Get current game phase
+     */
+    getCurrentPhase() {
+        return this.gameState.getPhase();
+    }
+
+    /**
+     * Check if game is active
+     */
+    isGameActive() {
+        return this.gameState.isActivePlay();
+    }
+
+    /**
+     * Get current hand index
+     */
+    getCurrentHandIndex() {
+        return this.currentHandIndex;
+    }
+
+    /**
+     * Get game state data for external access
+     */
+    getGameStateData() {
+        return this.gameState.getSessionData();
+    }
+
+    /**
+     * Get game flow statistics
+     */
+    getGameFlowStats() {
+        return this.gameFlow.getFlowStats();
+    }
+
+    /**
+     * Get action handler statistics
+     */
+    getActionStats() {
+        return this.actionHandler.getActionStats();
+    }
+
+    /**
+     * Get available actions for current state
+     */
+    getAvailableActions() {
+        return this.actionHandler.getAvailableActions();
+    }
+
+    /**
+     * Export game state for save/load functionality
+     */
+    exportGameState() {
+        return {
+            gameState: this.gameState.exportState(),
+            currentHandIndex: this.currentHandIndex,
+            dealerHand: this.dealerHand ? {
+                cards: this.dealerHand.cards,
+                value: this.dealerHand.getValue()
+            } : null,
+            playerHands: this.playerHands.map(hand => ({
+                cards: hand.cards,
+                value: hand.getValue(),
+                isDoubled: hand.isDoubled,
+                isSplit: hand.isSplit
+            })),
+            deckState: this.deck ? this.deck.getRemainingCards() : null
+        };
+    }
+
+    /**
+     * Import game state for save/load functionality
+     */
+    importGameState(exportedData) {
+        try {
+            if (exportedData.gameState) {
+                this.gameState.importState(exportedData.gameState);
+            }
+            
+            if (exportedData.currentHandIndex !== undefined) {
+                this.currentHandIndex = exportedData.currentHandIndex;
+            }
+            
+            // Restore hands would require more complex logic
+            // This is a simplified version for the basic structure
+            
+            this.updateModuleReferences();
+            this.updateAllDisplays();
+            
+            return true;
+        } catch (error) {
+            console.error('Error importing game state:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Pause game operations
+     */
+    pauseGame() {
+        this.gameFlow.pauseGame();
+    }
+
+    /**
+     * Resume game operations
+     */
+    resumeGame() {
+        this.gameFlow.resumeGame();
+    }
+
+    /**
+     * Emergency stop all operations
+     */
+    emergencyStop() {
+        this.gameFlow.emergencyStop();
+        this.actionHandler.disablePlayerActions();
+        console.log('🚨 GameController emergency stop activated');
+    }
+
+    /**
+     * Validate current game state
+     */
+    validateGameState() {
+        const issues = [];
+        
+        // Validate game flow
+        const flowValidation = this.gameFlow.validateFlowState();
+        if (!flowValidation.isValid) {
+            issues.push(...flowValidation.issues);
+        }
+        
+        // Validate action handler
+        const actionInfo = this.actionHandler.getActionInfo();
+        if (actionInfo.currentHandIndex !== this.currentHandIndex) {
+            issues.push('Hand index mismatch between controller and action handler');
+        }
+        
+        // Validate game state
+        if (!this.gameState.isInitialized) {
+            issues.push('Game state not properly initialized');
+        }
+        
+        return {
+            isValid: issues.length === 0,
+            issues,
+            gamePhase: this.gameState.getPhase(),
+            actionInfo
+        };
+    }
+
+    /**
+     * Get comprehensive game info for debugging
+     */
+    getDebugInfo() {
+        return {
+            isInitialized: this.isInitialized,
+            gameState: this.gameState.getStateSummary(),
+            flowStats: this.gameFlow.getFlowStats(),
+            actionStats: this.actionHandler.getActionStats(),
+            validation: this.validateGameState(),
+            currentHands: {
+                dealer: this.dealerHand ? this.dealerHand.getValue() : null,
+                player: this.playerHands.map(h => h.getValue()),
+                currentIndex: this.currentHandIndex
+            }
+        };
+    }
+
+    /**
+     * Cleanup all resources
+     */
+    cleanup() {
+        console.log('🧹 Cleaning up GameController...');
+        
+        // Cleanup modules
+        this.gameState.cleanup();
+        this.actionHandler.cleanup();
+        this.gameFlow.cleanup();
+        
+        // Reset references
+        this.dealerHand = null;
+        this.playerHands = [];
+        this.currentHandIndex = 0;
+        this.deck = null;
+        
+        this.isInitialized = false;
+        
+        console.log('✅ GameController cleanup complete');
     }
 }
