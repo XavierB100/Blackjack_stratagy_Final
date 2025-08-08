@@ -3284,6 +3284,90 @@ kbd {
 .chart-cell.split { background: #f59e0b; color: white; }
 .chart-cell.surrender { background: #6b21a8; color: white; }
 
+/* Legend Action Colors - Match Chart Cell Colors Exactly */
+.action-hit { 
+    background: var(--red); 
+    color: white; 
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+.action-stand { 
+    background: var(--light-green); 
+    color: white; 
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+.action-double { 
+    background: #3b82f6; 
+    color: white; 
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+.action-split { 
+    background: #f59e0b; 
+    color: white; 
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+.action-surrender { 
+    background: #6b21a8; 
+    color: white; 
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+/* Legend Layout Styling */
+.legend {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.legend h4 {
+    color: var(--gold);
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+    text-align: center;
+}
+
+.legend-items {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--light-gray);
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .legend-items {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .legend-item {
+        justify-content: center;
+    }
+}
+
 .mock-drill {
     background: rgba(0, 0, 0, 0.8);
     border-radius: var(--border-radius);
