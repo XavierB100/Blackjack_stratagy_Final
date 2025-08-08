@@ -3681,3 +3681,8 @@ kbd {
     background: #ef4444;
     border-color: #dc2626;
 }
+
+/* Mistake Items Styling */
+.mistake-item {
+    margin-bottom: 2rem;
+}
