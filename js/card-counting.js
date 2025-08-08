@@ -45,6 +45,86 @@ class CardCountingApp {
     }
 
     setupDrillControls() {
+        // Setup tab switching
+        this.setupTabSwitching();
+        
+        // Setup speed counting drill controls
+        this.setupSpeedDrillControls();
+        
+        // Setup true count drill controls
+        this.setupTrueCountDrillControls();
+        
+        // Setup casino scenarios controls
+        this.setupCasinoScenariosControls();
+        
+        // Setup betting practice controls
+        this.setupBettingPracticeControls();
+    }
+
+    setupTabSwitching() {
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const practiceSections = document.querySelectorAll('.practice-section');
+
+        tabButtons.forEach(tabBtn => {
+            tabBtn.addEventListener('click', () => {
+                const drillType = tabBtn.getAttribute('data-drill');
+                this.switchToDrill(drillType, tabBtn, tabButtons, practiceSections);
+            });
+        });
+    }
+
+    switchToDrill(drillType, activeBtn, allTabBtns, allSections) {
+        console.log(`🎯 Switching to ${drillType} drill`);
+        
+        // Stop any active drill
+        if (this.drillActive) {
+            this.stopDrill();
+        }
+        
+        // Update tab buttons and ARIA attributes
+        allTabBtns.forEach(btn => {
+            btn.classList.remove('active');
+            btn.setAttribute('aria-selected', 'false');
+        });
+        activeBtn.classList.add('active');
+        activeBtn.setAttribute('aria-selected', 'true');
+        
+        // Hide all sections
+        allSections.forEach(section => {
+            section.classList.remove('active');
+            section.style.display = 'none';
+        });
+        
+        // Show selected section
+        const targetSectionId = `${drillType}-drill`;
+        const targetSection = document.getElementById(targetSectionId);
+        if (targetSection) {
+            targetSection.classList.add('active');
+            targetSection.style.display = 'block';
+            
+            // Initialize drill-specific functionality
+            this.initializeDrill(drillType);
+        }
+    }
+
+    initializeDrill(drillType) {
+        switch(drillType) {
+            case 'speed':
+                this.resetDrill();
+                break;
+            case 'true-count':
+                this.generateTrueCountScenario();
+                break;
+            case 'scenario':
+                this.initializeCasinoScenario();
+                break;
+            case 'betting':
+                this.generateBettingScenario();
+                break;
+        }
+    }
+
+    setupSpeedDrillControls() {
         const startDrillBtn = document.getElementById('start-drill');
         const nextCardBtn = document.getElementById('next-card');
         const resetDrillBtn = document.getElementById('reset-drill');
@@ -477,6 +557,513 @@ class CardCountingApp {
         }
         
         return recommendations;
+    }
+
+    // TRUE COUNT DRILL METHODS
+    setupTrueCountDrillControls() {
+        const checkBtn = document.getElementById('check-true-count');
+        const nextBtn = document.getElementById('next-true-count');
+        const answerInput = document.getElementById('true-count-answer');
+
+        if (checkBtn) {
+            checkBtn.addEventListener('click', () => this.checkTrueCountAnswer());
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => this.generateTrueCountScenario());
+        }
+
+        if (answerInput) {
+            answerInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    this.checkTrueCountAnswer();
+                }
+            });
+        }
+
+        // Initialize stats
+        this.trueCountStats = {
+            correct: 0,
+            total: 0,
+            currentScenario: null
+        };
+    }
+
+    generateTrueCountScenario() {
+        // Generate random running count (-20 to +20)
+        const runningCount = Math.floor(Math.random() * 41) - 20;
+        
+        // Generate random decks remaining (0.5 to 6.0)
+        const decksRemaining = Math.round((Math.random() * 5.5 + 0.5) * 2) / 2;
+        
+        // Calculate correct true count
+        const correctTrueCount = Math.round((runningCount / decksRemaining) * 2) / 2;
+        
+        this.trueCountStats.currentScenario = {
+            runningCount,
+            decksRemaining,
+            correctTrueCount
+        };
+        
+        // Update display
+        const runningCountDisplay = document.getElementById('running-count-display');
+        const decksRemainingDisplay = document.getElementById('decks-remaining-display');
+        const answerInput = document.getElementById('true-count-answer');
+        const resultDiv = document.getElementById('true-count-result');
+        
+        if (runningCountDisplay) {
+            runningCountDisplay.textContent = runningCount > 0 ? `+${runningCount}` : runningCount.toString();
+        }
+        
+        if (decksRemainingDisplay) {
+            decksRemainingDisplay.textContent = decksRemaining.toString();
+        }
+        
+        if (answerInput) {
+            answerInput.value = '';
+            answerInput.focus();
+        }
+        
+        if (resultDiv) {
+            resultDiv.style.display = 'none';
+        }
+        
+        console.log(`🧮 New True Count scenario: RC=${runningCount}, Decks=${decksRemaining}, Correct TC=${correctTrueCount}`);
+    }
+
+    checkTrueCountAnswer() {
+        const answerInput = document.getElementById('true-count-answer');
+        const resultDiv = document.getElementById('true-count-result');
+        const resultText = resultDiv?.querySelector('.result-text');
+        
+        if (!answerInput || !this.trueCountStats.currentScenario) return;
+        
+        const userAnswer = parseFloat(answerInput.value);
+        const correctAnswer = this.trueCountStats.currentScenario.correctTrueCount;
+        
+        this.trueCountStats.total++;
+        
+        let isCorrect = Math.abs(userAnswer - correctAnswer) < 0.1;
+        
+        if (isCorrect) {
+            this.trueCountStats.correct++;
+        }
+        
+        // Show result
+        if (resultText) {
+            if (isCorrect) {
+                resultText.innerHTML = `
+                    <span style="color: #22c55e;">✅ Correct!</span>
+                    <br>True Count: ${correctAnswer}
+                `;
+            } else {
+                resultText.innerHTML = `
+                    <span style="color: #dc2626;">❌ Incorrect</span>
+                    <br>Your answer: ${userAnswer}
+                    <br>Correct answer: ${correctAnswer}
+                    <br>Formula: ${this.trueCountStats.currentScenario.runningCount} ÷ ${this.trueCountStats.currentScenario.decksRemaining} = ${correctAnswer}
+                `;
+            }
+        }
+        
+        if (resultDiv) {
+            resultDiv.style.display = 'block';
+        }
+        
+        this.updateTrueCountStats();
+    }
+
+    updateTrueCountStats() {
+        const correctElement = document.getElementById('true-count-correct');
+        const totalElement = document.getElementById('true-count-total');
+        const accuracyElement = document.getElementById('true-count-accuracy');
+        
+        if (correctElement) {
+            correctElement.textContent = this.trueCountStats.correct;
+        }
+        
+        if (totalElement) {
+            totalElement.textContent = this.trueCountStats.total;
+        }
+        
+        if (accuracyElement) {
+            const accuracy = this.trueCountStats.total > 0 ? 
+                Math.round((this.trueCountStats.correct / this.trueCountStats.total) * 100) : 0;
+            accuracyElement.textContent = `${accuracy}%`;
+        }
+    }
+
+    // CASINO SCENARIOS DRILL METHODS
+    setupCasinoScenariosControls() {
+        const scenarioButtons = document.querySelectorAll('.scenario-btn');
+        const startBtn = document.getElementById('start-scenario');
+        const pauseBtn = document.getElementById('pause-scenario');
+        const countInput = document.getElementById('scenario-count');
+
+        scenarioButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.selectCasinoScenario(btn, scenarioButtons);
+            });
+        });
+
+        if (startBtn) {
+            startBtn.addEventListener('click', () => this.startCasinoScenario());
+        }
+
+        if (pauseBtn) {
+            pauseBtn.addEventListener('click', () => this.pauseCasinoScenario());
+        }
+
+        if (countInput) {
+            countInput.addEventListener('change', (e) => {
+                this.scenarioUserCount = parseInt(e.target.value) || 0;
+            });
+        }
+
+        // Initialize scenario state
+        this.scenarioState = {
+            active: false,
+            type: 'basic',
+            deck: null,
+            actualCount: 0,
+            userCount: 0,
+            round: 0
+        };
+    }
+
+    selectCasinoScenario(activeBtn, allBtns) {
+        const scenarioType = activeBtn.getAttribute('data-scenario');
+        
+        // Update button states
+        allBtns.forEach(btn => btn.classList.remove('active'));
+        activeBtn.classList.add('active');
+        
+        this.scenarioState.type = scenarioType;
+        this.updateScenarioDisplay(scenarioType);
+        
+        console.log(`🎰 Selected casino scenario: ${scenarioType}`);
+    }
+
+    updateScenarioDisplay(scenarioType) {
+        const titleElement = document.getElementById('scenario-title');
+        const descriptionElement = document.getElementById('scenario-description');
+        
+        const scenarios = {
+            basic: {
+                title: 'Basic Casino Table',
+                description: 'Standard 6-deck game, moderate pace, few distractions'
+            },
+            crowded: {
+                title: 'Crowded Table',
+                description: 'Full table, 7 players, conversations and distractions'
+            },
+            fast: {
+                title: 'Fast Dealer',
+                description: 'Experienced dealer, rapid card dealing, time pressure'
+            },
+            shuffle: {
+                title: 'Shuffle Tracking',
+                description: 'Practice maintaining count through shuffle breaks'
+            }
+        };
+        
+        if (titleElement && scenarios[scenarioType]) {
+            titleElement.textContent = scenarios[scenarioType].title;
+        }
+        
+        if (descriptionElement && scenarios[scenarioType]) {
+            descriptionElement.textContent = scenarios[scenarioType].description;
+        }
+    }
+
+    initializeCasinoScenario() {
+        // Reset to basic scenario
+        this.scenarioState.type = 'basic';
+        this.updateScenarioDisplay('basic');
+        
+        // Reset input
+        const countInput = document.getElementById('scenario-count');
+        if (countInput) {
+            countInput.value = '0';
+        }
+    }
+
+    startCasinoScenario() {
+        console.log(`🎰 Starting ${this.scenarioState.type} casino scenario`);
+        
+        this.scenarioState.active = true;
+        this.scenarioState.deck = new Deck(6); // 6-deck shoe
+        this.scenarioState.deck.shuffle();
+        this.scenarioState.actualCount = 0;
+        this.scenarioState.userCount = 0;
+        this.scenarioState.round = 0;
+        
+        // Update UI
+        this.updateScenarioButtons(true);
+        this.dealScenarioRound();
+    }
+
+    pauseCasinoScenario() {
+        this.scenarioState.active = false;
+        this.updateScenarioButtons(false);
+        console.log('⏸️ Casino scenario paused');
+    }
+
+    dealScenarioRound() {
+        if (!this.scenarioState.active || !this.scenarioState.deck) return;
+        
+        this.scenarioState.round++;
+        
+        // Simulate dealing cards to multiple players and dealer
+        const numPlayers = this.scenarioState.type === 'crowded' ? 7 : 
+                           this.scenarioState.type === 'basic' ? 4 : 5;
+        
+        let roundCards = [];
+        
+        // Deal 2 cards to each player and dealer
+        for (let round = 0; round < 2; round++) {
+            for (let player = 0; player <= numPlayers; player++) {
+                if (this.scenarioState.deck.cards.length > 0) {
+                    const card = this.scenarioState.deck.dealCard();
+                    roundCards.push(card);
+                    this.scenarioState.actualCount += card.getHiLoValue();
+                }
+            }
+        }
+        
+        // Display the cards
+        this.displayScenarioCards(roundCards);
+        
+        // Set timeout for next round based on scenario type
+        const delay = this.scenarioState.type === 'fast' ? 2000 : 
+                     this.scenarioState.type === 'crowded' ? 4000 : 3000;
+        
+        setTimeout(() => {
+            if (this.scenarioState.active && this.scenarioState.deck.cards.length > 10) {
+                this.dealScenarioRound();
+            } else {
+                this.endScenario();
+            }
+        }, delay);
+    }
+
+    displayScenarioCards(cards) {
+        // Simple display - in a real implementation, this would show cards on the virtual table
+        const dealerArea = document.getElementById('scenario-dealer-cards');
+        const playerAreas = document.getElementById('scenario-player-areas');
+        
+        if (dealerArea) {
+            dealerArea.innerHTML = `<div class="scenario-round">Round ${this.scenarioState.round}: ${cards.length} cards dealt</div>`;
+        }
+        
+        console.log(`🃏 Round ${this.scenarioState.round}: Dealt ${cards.length} cards, Running Count: ${this.scenarioState.actualCount}`);
+    }
+
+    endScenario() {
+        console.log('🏁 Casino scenario completed');
+        this.scenarioState.active = false;
+        this.updateScenarioButtons(false);
+        
+        // Show feedback
+        const feedbackDiv = document.getElementById('scenario-feedback');
+        if (feedbackDiv) {
+            const accuracy = this.calculateScenarioAccuracy();
+            feedbackDiv.querySelector('.feedback-content').innerHTML = `
+                <h4>Scenario Complete!</h4>
+                <p>Actual Count: ${this.scenarioState.actualCount}</p>
+                <p>Your Count: ${this.scenarioState.userCount}</p>
+                <p>Accuracy: ${accuracy}%</p>
+            `;
+            feedbackDiv.style.display = 'block';
+        }
+    }
+
+    calculateScenarioAccuracy() {
+        const difference = Math.abs(this.scenarioState.userCount - this.scenarioState.actualCount);
+        const maxError = Math.max(10, Math.abs(this.scenarioState.actualCount));
+        return Math.max(0, Math.round((1 - difference / maxError) * 100));
+    }
+
+    updateScenarioButtons(active) {
+        const startBtn = document.getElementById('start-scenario');
+        const pauseBtn = document.getElementById('pause-scenario');
+        const countInput = document.getElementById('scenario-count');
+        
+        if (startBtn) {
+            startBtn.disabled = active;
+            startBtn.textContent = active ? 'Scenario Running...' : 'Start Scenario';
+        }
+        
+        if (pauseBtn) {
+            pauseBtn.disabled = !active;
+        }
+        
+        if (countInput) {
+            countInput.disabled = !active;
+        }
+    }
+
+    // BETTING PRACTICE DRILL METHODS
+    setupBettingPracticeControls() {
+        const placeBetBtn = document.getElementById('place-bet');
+        const nextScenarioBtn = document.getElementById('next-bet-scenario');
+        const betAmountInput = document.getElementById('bet-amount');
+
+        if (placeBetBtn) {
+            placeBetBtn.addEventListener('click', () => this.placeBet());
+        }
+
+        if (nextScenarioBtn) {
+            nextScenarioBtn.addEventListener('click', () => this.generateBettingScenario());
+        }
+
+        if (betAmountInput) {
+            betAmountInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    this.placeBet();
+                }
+            });
+        }
+
+        // Initialize betting stats
+        this.bettingStats = {
+            scenarios: 0,
+            currentScenario: null,
+            bankroll: 10000
+        };
+    }
+
+    generateBettingScenario() {
+        // Generate random true count (-5 to +8)
+        const trueCount = Math.round((Math.random() * 13 - 5) * 2) / 2;
+        
+        // Vary bankroll slightly
+        const bankrollVariation = Math.floor(Math.random() * 1000) - 500;
+        const currentBankroll = Math.max(5000, this.bettingStats.bankroll + bankrollVariation);
+        
+        // Calculate risk level
+        const riskLevel = currentBankroll > 15000 ? 'Low' : 
+                         currentBankroll > 8000 ? 'Medium' : 'High';
+        
+        this.bettingStats.currentScenario = {
+            trueCount,
+            bankroll: currentBankroll,
+            riskLevel,
+            minBet: 25,
+            maxBet: 500
+        };
+        
+        // Update display
+        this.updateBettingScenarioDisplay();
+        
+        console.log(`💰 New betting scenario: TC=${trueCount}, Bankroll=$${currentBankroll}`);
+    }
+
+    updateBettingScenarioDisplay() {
+        const scenario = this.bettingStats.currentScenario;
+        if (!scenario) return;
+        
+        const trueCountElement = document.getElementById('betting-true-count');
+        const bankrollElement = document.getElementById('current-bankroll');
+        const riskLevelElement = document.getElementById('risk-level');
+        const betAmountInput = document.getElementById('bet-amount');
+        const feedbackDiv = document.getElementById('bet-feedback');
+        
+        if (trueCountElement) {
+            trueCountElement.textContent = scenario.trueCount > 0 ? `+${scenario.trueCount}` : scenario.trueCount.toString();
+        }
+        
+        if (bankrollElement) {
+            bankrollElement.textContent = `$${scenario.bankroll.toLocaleString()}`;
+        }
+        
+        if (riskLevelElement) {
+            riskLevelElement.textContent = scenario.riskLevel;
+            riskLevelElement.className = scenario.riskLevel.toLowerCase();
+        }
+        
+        if (betAmountInput) {
+            betAmountInput.value = '';
+            betAmountInput.focus();
+        }
+        
+        if (feedbackDiv) {
+            feedbackDiv.style.display = 'none';
+        }
+    }
+
+    placeBet() {
+        const betAmountInput = document.getElementById('bet-amount');
+        const scenario = this.bettingStats.currentScenario;
+        
+        if (!betAmountInput || !scenario) return;
+        
+        const userBet = parseInt(betAmountInput.value);
+        const optimalBet = this.calculateOptimalBet(scenario);
+        
+        this.bettingStats.scenarios++;
+        
+        this.showBettingFeedback(userBet, optimalBet, scenario);
+        this.updateBettingStats();
+    }
+
+    calculateOptimalBet(scenario) {
+        const { trueCount, bankroll, minBet, maxBet } = scenario;
+        
+        // Simple betting strategy: bet minBet * (trueCount - 1) when TC > 1
+        if (trueCount <= 1) {
+            return minBet;
+        }
+        
+        const multiplier = Math.max(1, trueCount - 1);
+        const calculatedBet = minBet * multiplier;
+        
+        // Apply bankroll constraints (don't bet more than 2% of bankroll)
+        const maxBankrollBet = Math.floor(bankroll * 0.02);
+        
+        return Math.min(maxBet, Math.max(minBet, Math.min(calculatedBet, maxBankrollBet)));
+    }
+
+    showBettingFeedback(userBet, optimalBet, scenario) {
+        const feedbackDiv = document.getElementById('bet-feedback');
+        const resultElement = feedbackDiv?.querySelector('.feedback-result');
+        const optimalBetElement = document.getElementById('optimal-bet-amount');
+        const explanationElement = feedbackDiv?.querySelector('.bet-explanation');
+        
+        if (!feedbackDiv) return;
+        
+        const difference = Math.abs(userBet - optimalBet);
+        const isGoodBet = difference <= Math.max(25, optimalBet * 0.2);
+        
+        if (resultElement) {
+            resultElement.innerHTML = isGoodBet ? 
+                '<span style="color: #22c55e;">✅ Good bet sizing!</span>' :
+                '<span style="color: #f59e0b;">⚠️ Suboptimal bet size</span>';
+        }
+        
+        if (optimalBetElement) {
+            optimalBetElement.textContent = optimalBet;
+        }
+        
+        if (explanationElement) {
+            let explanation = '';
+            if (scenario.trueCount <= 1) {
+                explanation = 'True count ≤ 1: Bet minimum to preserve bankroll';
+            } else {
+                explanation = `True count = ${scenario.trueCount}: Increase bet size proportionally`;
+            }
+            explanationElement.textContent = explanation;
+        }
+        
+        feedbackDiv.style.display = 'block';
+    }
+
+    updateBettingStats() {
+        const scenariosElement = document.getElementById('betting-scenarios-count');
+        
+        if (scenariosElement) {
+            scenariosElement.textContent = this.bettingStats.scenarios;
+        }
     }
 }
 

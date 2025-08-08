@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <header class="header">
         <nav class="navbar">
             <div class="nav-container">
@@ -31,16 +32,16 @@
                         <a href="about.html" class="nav-link">About</a>
                     </li>
                 </ul>
-                <div class="hamburger">
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                </div>
+                <button class="hamburger" aria-label="Toggle navigation menu" aria-expanded="false">
+                    <span class="bar" aria-hidden="true"></span>
+                    <span class="bar" aria-hidden="true"></span>
+                    <span class="bar" aria-hidden="true"></span>
+                </button>
             </div>
         </nav>
     </header>
 
-    <main class="page-content">
+    <main class="page-content" id="main-content">
         <div class="content-container">
             <header class="page-header">
                 <h1>Card Counting Guide</h1>
@@ -214,15 +215,15 @@
 
             <section class="content-section">
                 <h2>Practice Drills</h2>
-                <div class="drill-tabs">
-                    <button class="tab-btn active" data-drill="speed">Speed Counting</button>
-                    <button class="tab-btn" data-drill="true-count">True Count</button>
-                    <button class="tab-btn" data-drill="scenario">Casino Scenarios</button>
-                    <button class="tab-btn" data-drill="betting">Betting Practice</button>
+                <div class="drill-tabs" role="tablist" aria-label="Card counting practice drills">
+                    <button class="tab-btn active" data-drill="speed" role="tab" aria-selected="true" aria-controls="speed-drill" id="speed-tab">Speed Counting</button>
+                    <button class="tab-btn" data-drill="true-count" role="tab" aria-selected="false" aria-controls="true-count-drill" id="true-count-tab">True Count</button>
+                    <button class="tab-btn" data-drill="scenario" role="tab" aria-selected="false" aria-controls="scenario-drill" id="scenario-tab">Casino Scenarios</button>
+                    <button class="tab-btn" data-drill="betting" role="tab" aria-selected="false" aria-controls="betting-drill" id="betting-tab">Betting Practice</button>
                 </div>
                 
                 <!-- Speed Counting Drill -->
-                <div class="practice-section active" id="speed-drill">
+                <div class="practice-section active" id="speed-drill" role="tabpanel" aria-labelledby="speed-tab">
                     <h3>Speed Counting Drill</h3>
                     <p>Practice counting through a deck as quickly as possible while maintaining accuracy.</p>
                     <div class="difficulty-selector">
@@ -278,7 +279,7 @@
                 </div>
 
                 <!-- True Count Practice -->
-                <div class="practice-section" id="true-count-drill" style="display: none;">
+                <div class="practice-section" id="true-count-drill" role="tabpanel" aria-labelledby="true-count-tab" style="display: none;">
                     <h3>True Count Calculation</h3>
                     <p>Practice converting running count to true count based on decks remaining.</p>
                     
@@ -325,7 +326,7 @@
                 </div>
 
                 <!-- Casino Scenarios -->
-                <div class="practice-section" id="scenario-drill" style="display: none;">
+                <div class="practice-section" id="scenario-drill" role="tabpanel" aria-labelledby="scenario-tab" style="display: none;">
                     <h3>Real Casino Scenarios</h3>
                     <p>Practice counting in realistic casino environments with distractions and varying conditions.</p>
                     
@@ -377,7 +378,7 @@
                 </div>
 
                 <!-- Betting Strategy Practice -->
-                <div class="practice-section" id="betting-drill" style="display: none;">
+                <div class="practice-section" id="betting-drill" role="tabpanel" aria-labelledby="betting-tab" style="display: none;">
                     <h3>Betting Strategy Practice</h3>
                     <p>Learn optimal bet sizing based on true count and bankroll management.</p>
                     
