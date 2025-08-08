@@ -20,7 +20,6 @@ class StrategyGuideApp {
             timer: null,
             startTime: null
         };
-        this.basicStrategyData = this.initializeBasicStrategyData();
         this.surrenderFallbacks = this.initializeSurrenderFallbacks();
     }
 
@@ -35,6 +34,12 @@ class StrategyGuideApp {
             await this.navigation.init();
             await this.strategyHints.init();
             
+            // Validate that we have working strategy data
+            const testData = this.getBasicStrategyData();
+            if (!testData) {
+                throw new Error('Unable to load strategy data');
+            }
+            
             // Set up page-specific functionality
             this.setupChartTabs();
             this.populateStrategyCharts();
@@ -43,10 +48,89 @@ class StrategyGuideApp {
             this.setupPracticeMode();
             
             this.isInitialized = true;
-            console.log('✅ Strategy Guide initialized');
+            console.log('✅ Strategy Guide initialized with validated data');
             
         } catch (error) {
             console.error('❌ Failed to initialize Strategy Guide:', error);
+            // Try to provide basic functionality even if full initialization fails
+            this.handleInitializationError(error);
+        }
+    }
+
+    /**
+     * Handle initialization errors gracefully
+     */
+    handleInitializationError(error) {
+        try {
+            console.warn('🔧 Attempting graceful degradation...');
+            
+            // Try to set up basic functionality with fallback data
+            this.setupChartTabs();
+            this.populateStrategyCharts(); // Will use fallback data
+            this.setupInteractivity();
+            this.setupQuickLookup();
+            
+            // Show user-friendly error message
+            this.showInitializationError();
+            
+            console.log('⚠️ Strategy Guide initialized with limited functionality');
+        } catch (fallbackError) {
+            console.error('❌ Complete initialization failure:', fallbackError);
+            this.showCriticalError();
+        }
+    }
+
+    /**
+     * Show user-friendly initialization error
+     */
+    showInitializationError() {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'initialization-warning';
+        errorDiv.style.cssText = `
+            background: #fff3cd; 
+            border: 1px solid #ffeaa7; 
+            color: #856404; 
+            padding: 1rem; 
+            margin: 1rem 0; 
+            border-radius: 4px;
+            text-align: center;
+        `;
+        errorDiv.innerHTML = `
+            <strong>⚠️ Notice:</strong> Some advanced features may not be available. 
+            Basic strategy charts are still functional using backup data.
+        `;
+        
+        const container = document.querySelector('.content-container');
+        if (container) {
+            container.insertBefore(errorDiv, container.firstChild);
+        }
+    }
+
+    /**
+     * Show critical error message
+     */
+    showCriticalError() {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'critical-error';
+        errorDiv.style.cssText = `
+            background: #f8d7da; 
+            border: 1px solid #f5c6cb; 
+            color: #721c24; 
+            padding: 2rem; 
+            margin: 2rem 0; 
+            border-radius: 4px;
+            text-align: center;
+        `;
+        errorDiv.innerHTML = `
+            <h3>❌ Strategy Guide Unavailable</h3>
+            <p>We're experiencing technical difficulties loading the strategy guide. Please refresh the page or try again later.</p>
+            <p><small>Error details have been logged for our development team.</small></p>
+        `;
+        
+        const container = document.querySelector('.content-container');
+        if (container) {
+            container.innerHTML = '';
+            container.appendChild(errorDiv);
         }
     }
 
@@ -80,21 +164,55 @@ class StrategyGuideApp {
     }
 
     populateStrategyCharts() {
-        if (!this.strategyHints.isAvailable()) {
-            console.warn('Strategy hints not available yet');
-            return;
+        try {
+            const charts = this.getBasicStrategyData();
+            
+            if (!charts) {
+                throw new Error('No strategy data available');
+            }
+            
+            // Populate hard totals chart
+            if (charts.hard) {
+                this.populateHardChart(charts.hard);
+            } else {
+                console.error('Hard totals data missing');
+            }
+            
+            // Populate soft totals chart
+            if (charts.soft) {
+                this.populateSoftChart(charts.soft);
+            } else {
+                console.error('Soft totals data missing');
+            }
+            
+            // Populate pairs chart
+            if (charts.pairs) {
+                this.populatePairsChart(charts.pairs);
+            } else {
+                console.error('Pairs data missing');
+            }
+        } catch (error) {
+            console.error('Error populating strategy charts:', error);
+            this.showChartError();
         }
+    }
 
-        const charts = this.strategyHints.getAllCharts();
-        
-        // Populate hard totals chart
-        this.populateHardChart(charts.hard);
-        
-        // Populate soft totals chart
-        this.populateSoftChart(charts.soft);
-        
-        // Populate pairs chart
-        this.populatePairsChart(charts.pairs);
+    /**
+     * Show chart population error
+     */
+    showChartError() {
+        const chartContainers = document.querySelectorAll('.strategy-chart tbody');
+        chartContainers.forEach(tbody => {
+            if (tbody) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="11" style="text-align: center; padding: 2rem; color: #dc3545;">
+                            ⚠️ Unable to load strategy chart data
+                        </td>
+                    </tr>
+                `;
+            }
+        });
     }
 
     getActionWithSurrenderRule(chartType, handValue, dealerCard, originalAction) {
@@ -138,7 +256,7 @@ class StrategyGuideApp {
                 const action = this.getActionWithSurrenderRule('hard', total, dealerCard, originalAction);
                 
                 cell.textContent = action;
-                cell.className = `action-cell ${this.getActionClass(action)}`;
+                cell.className = `chart-cell ${this.getActionClass(action)}`;
                 cell.title = `${total} vs ${dealerCard === 11 ? 'A' : dealerCard}: ${this.getActionName(action)}`;
                 
                 // Add click handler for detailed explanation
@@ -176,7 +294,7 @@ class StrategyGuideApp {
                 const action = softData[total]?.[dealerCard] || 'H';
                 
                 cell.textContent = action;
-                cell.className = `action-cell ${this.getActionClass(action)}`;
+                cell.className = `chart-cell ${this.getActionClass(action)}`;
                 cell.title = `Soft ${total} vs ${dealerCard === 11 ? 'A' : dealerCard}: ${this.getActionName(action)}`;
                 
                 cell.addEventListener('click', () => {
@@ -214,7 +332,7 @@ class StrategyGuideApp {
                 const action = pairsData[pair]?.[dealerCard] || 'H';
                 
                 cell.textContent = action;
-                cell.className = `action-cell ${this.getActionClass(action)}`;
+                cell.className = `chart-cell ${this.getActionClass(action)}`;
                 cell.title = `${pair} pair vs ${dealerCard === 11 ? 'A' : dealerCard}: ${this.getActionName(action)}`;
                 
                 cell.addEventListener('click', () => {
@@ -230,13 +348,13 @@ class StrategyGuideApp {
 
     getActionClass(action) {
         const actionClasses = {
-            'H': 'action-hit',
-            'S': 'action-stand',
-            'D': 'action-double',
-            'SP': 'action-split',
-            'SU': 'action-surrender'
+            'H': 'hit',
+            'S': 'stand',
+            'D': 'double',
+            'SP': 'split',
+            'SU': 'surrender'
         };
-        return actionClasses[action] || 'action-hit';
+        return actionClasses[action] || 'hit';
     }
 
     getActionName(action) {
@@ -372,7 +490,8 @@ class StrategyGuideApp {
 
     // Method to get chart data for external use
     getChartData(chartType) {
-        return this.strategyHints?.getStrategyChart(chartType);
+        const basicStrategyData = this.getBasicStrategyData();
+        return basicStrategyData[chartType];
     }
 
     // Method to export chart as text
@@ -400,6 +519,145 @@ class StrategyGuideApp {
             hard: {
                 15: { 10: 'H' }, // Hard 15 vs 10: Surrender → Hit
                 16: { 9: 'H', 10: 'H', 11: 'H' } // Hard 16 vs 9/10/A: Surrender → Hit
+            }
+        };
+    }
+
+    /**
+     * Get authoritative basic strategy data from StrategyHints module
+     */
+    getBasicStrategyData() {
+        try {
+            if (!this.strategyHints?.isAvailable()) {
+                console.warn('StrategyHints not available, using fallback data');
+                return this.getFallbackStrategyData();
+            }
+            
+            const charts = this.strategyHints.getAllCharts();
+            
+            // Validate the data structure
+            if (!this.validateStrategyData(charts)) {
+                console.warn('Strategy data validation failed, using fallback data');
+                return this.getFallbackStrategyData();
+            }
+            
+            return charts;
+        } catch (error) {
+            console.error('Error getting strategy data:', error);
+            return this.getFallbackStrategyData();
+        }
+    }
+
+    /**
+     * Validate strategy data structure and completeness
+     */
+    validateStrategyData(data) {
+        try {
+            // Check main structure
+            if (!data || typeof data !== 'object') return false;
+            if (!data.hard || !data.soft || !data.pairs) return false;
+
+            // Validate hard totals (5-21)
+            for (let total = 5; total <= 21; total++) {
+                if (!data.hard[total]) {
+                    console.warn(`Missing hard total: ${total}`);
+                    return false;
+                }
+                for (let dealer = 2; dealer <= 11; dealer++) {
+                    if (!data.hard[total][dealer]) {
+                        console.warn(`Missing hard ${total} vs dealer ${dealer}`);
+                        return false;
+                    }
+                }
+            }
+
+            // Validate soft totals (13-21)
+            for (let total = 13; total <= 21; total++) {
+                if (!data.soft[total]) {
+                    console.warn(`Missing soft total: ${total}`);
+                    return false;
+                }
+                for (let dealer = 2; dealer <= 11; dealer++) {
+                    if (!data.soft[total][dealer]) {
+                        console.warn(`Missing soft ${total} vs dealer ${dealer}`);
+                        return false;
+                    }
+                }
+            }
+
+            // Validate pairs
+            const requiredPairs = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+            for (const pair of requiredPairs) {
+                if (!data.pairs[pair]) {
+                    console.warn(`Missing pair: ${pair}`);
+                    return false;
+                }
+                for (let dealer = 2; dealer <= 11; dealer++) {
+                    if (!data.pairs[pair][dealer]) {
+                        console.warn(`Missing pair ${pair} vs dealer ${dealer}`);
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        } catch (error) {
+            console.error('Error validating strategy data:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Fallback strategy data (should only be used if StrategyHints fails)
+     */
+    getFallbackStrategyData() {
+        // This is a backup in case StrategyHints fails to load
+        // Using the complete data we just added above
+        return {
+            hard: {
+                5: { 2: 'H', 3: 'H', 4: 'H', 5: 'H', 6: 'H', 7: 'H', 8: 'H', 9: 'H', 10: 'H', 11: 'H' },
+                6: { 2: 'H', 3: 'H', 4: 'H', 5: 'H', 6: 'H', 7: 'H', 8: 'H', 9: 'H', 10: 'H', 11: 'H' },
+                7: { 2: 'H', 3: 'H', 4: 'H', 5: 'H', 6: 'H', 7: 'H', 8: 'H', 9: 'H', 10: 'H', 11: 'H' },
+                8: { 2: 'H', 3: 'H', 4: 'H', 5: 'H', 6: 'H', 7: 'H', 8: 'H', 9: 'H', 10: 'H', 11: 'H' },
+                9: { 2: 'H', 3: 'D', 4: 'D', 5: 'D', 6: 'D', 7: 'H', 8: 'H', 9: 'H', 10: 'H', 11: 'H' },
+                10: { 2: 'D', 3: 'D', 4: 'D', 5: 'D', 6: 'D', 7: 'D', 8: 'D', 9: 'D', 10: 'H', 11: 'H' },
+                11: { 2: 'D', 3: 'D', 4: 'D', 5: 'D', 6: 'D', 7: 'D', 8: 'D', 9: 'D', 10: 'D', 11: 'H' },
+                12: { 2: 'H', 3: 'H', 4: 'S', 5: 'S', 6: 'S', 7: 'H', 8: 'H', 9: 'H', 10: 'H', 11: 'H' },
+                13: { 2: 'S', 3: 'S', 4: 'S', 5: 'S', 6: 'S', 7: 'H', 8: 'H', 9: 'H', 10: 'H', 11: 'H' },
+                14: { 2: 'S', 3: 'S', 4: 'S', 5: 'S', 6: 'S', 7: 'H', 8: 'H', 9: 'H', 10: 'H', 11: 'H' },
+                15: { 2: 'S', 3: 'S', 4: 'S', 5: 'S', 6: 'S', 7: 'H', 8: 'H', 9: 'H', 10: 'H', 11: 'H' },
+                16: { 2: 'S', 3: 'S', 4: 'S', 5: 'S', 6: 'S', 7: 'H', 8: 'H', 9: 'H', 10: 'H', 11: 'H' },
+                17: { 2: 'S', 3: 'S', 4: 'S', 5: 'S', 6: 'S', 7: 'S', 8: 'S', 9: 'S', 10: 'S', 11: 'S' },
+                18: { 2: 'S', 3: 'S', 4: 'S', 5: 'S', 6: 'S', 7: 'S', 8: 'S', 9: 'S', 10: 'S', 11: 'S' },
+                19: { 2: 'S', 3: 'S', 4: 'S', 5: 'S', 6: 'S', 7: 'S', 8: 'S', 9: 'S', 10: 'S', 11: 'S' },
+                20: { 2: 'S', 3: 'S', 4: 'S', 5: 'S', 6: 'S', 7: 'S', 8: 'S', 9: 'S', 10: 'S', 11: 'S' },
+                21: { 2: 'S', 3: 'S', 4: 'S', 5: 'S', 6: 'S', 7: 'S', 8: 'S', 9: 'S', 10: 'S', 11: 'S' }
+            },
+            soft: {
+                13: { 2: 'H', 3: 'H', 4: 'H', 5: 'D', 6: 'D', 7: 'H', 8: 'H', 9: 'H', 10: 'H', 11: 'H' },
+                14: { 2: 'H', 3: 'H', 4: 'H', 5: 'D', 6: 'D', 7: 'H', 8: 'H', 9: 'H', 10: 'H', 11: 'H' },
+                15: { 2: 'H', 3: 'H', 4: 'D', 5: 'D', 6: 'D', 7: 'H', 8: 'H', 9: 'H', 10: 'H', 11: 'H' },
+                16: { 2: 'H', 3: 'H', 4: 'D', 5: 'D', 6: 'D', 7: 'H', 8: 'H', 9: 'H', 10: 'H', 11: 'H' },
+                17: { 2: 'H', 3: 'D', 4: 'D', 5: 'D', 6: 'D', 7: 'H', 8: 'H', 9: 'H', 10: 'H', 11: 'H' },
+                18: { 2: 'S', 3: 'D', 4: 'D', 5: 'D', 6: 'D', 7: 'S', 8: 'S', 9: 'H', 10: 'H', 11: 'H' },
+                19: { 2: 'S', 3: 'S', 4: 'S', 5: 'S', 6: 'S', 7: 'S', 8: 'S', 9: 'S', 10: 'S', 11: 'S' },
+                20: { 2: 'S', 3: 'S', 4: 'S', 5: 'S', 6: 'S', 7: 'S', 8: 'S', 9: 'S', 10: 'S', 11: 'S' },
+                21: { 2: 'S', 3: 'S', 4: 'S', 5: 'S', 6: 'S', 7: 'S', 8: 'S', 9: 'S', 10: 'S', 11: 'S' }
+            },
+            pairs: {
+                'A': { 2: 'SP', 3: 'SP', 4: 'SP', 5: 'SP', 6: 'SP', 7: 'SP', 8: 'SP', 9: 'SP', 10: 'SP', 11: 'SP' },
+                '2': { 2: 'SP', 3: 'SP', 4: 'SP', 5: 'SP', 6: 'SP', 7: 'SP', 8: 'H', 9: 'H', 10: 'H', 11: 'H' },
+                '3': { 2: 'SP', 3: 'SP', 4: 'SP', 5: 'SP', 6: 'SP', 7: 'SP', 8: 'H', 9: 'H', 10: 'H', 11: 'H' },
+                '4': { 2: 'H', 3: 'H', 4: 'H', 5: 'SP', 6: 'SP', 7: 'H', 8: 'H', 9: 'H', 10: 'H', 11: 'H' },
+                '5': { 2: 'D', 3: 'D', 4: 'D', 5: 'D', 6: 'D', 7: 'D', 8: 'D', 9: 'D', 10: 'H', 11: 'H' },
+                '6': { 2: 'SP', 3: 'SP', 4: 'SP', 5: 'SP', 6: 'SP', 7: 'H', 8: 'H', 9: 'H', 10: 'H', 11: 'H' },
+                '7': { 2: 'SP', 3: 'SP', 4: 'SP', 5: 'SP', 6: 'SP', 7: 'SP', 8: 'H', 9: 'H', 10: 'H', 11: 'H' },
+                '8': { 2: 'SP', 3: 'SP', 4: 'SP', 5: 'SP', 6: 'SP', 7: 'SP', 8: 'SP', 9: 'SP', 10: 'SP', 11: 'SP' },
+                '9': { 2: 'SP', 3: 'SP', 4: 'SP', 5: 'SP', 6: 'SP', 7: 'S', 8: 'SP', 9: 'SP', 10: 'S', 11: 'S' },
+                '10': { 2: 'S', 3: 'S', 4: 'S', 5: 'S', 6: 'S', 7: 'S', 8: 'S', 9: 'S', 10: 'S', 11: 'S' },
+                'J': { 2: 'S', 3: 'S', 4: 'S', 5: 'S', 6: 'S', 7: 'S', 8: 'S', 9: 'S', 10: 'S', 11: 'S' },
+                'Q': { 2: 'S', 3: 'S', 4: 'S', 5: 'S', 6: 'S', 7: 'S', 8: 'S', 9: 'S', 10: 'S', 11: 'S' },
+                'K': { 2: 'S', 3: 'S', 4: 'S', 5: 'S', 6: 'S', 7: 'S', 8: 'S', 9: 'S', 10: 'S', 11: 'S' }
             }
         };
     }
@@ -434,7 +692,8 @@ class StrategyGuideApp {
                 17: { 2: 'H', 3: 'D', 4: 'D', 5: 'D', 6: 'D', 7: 'H', 8: 'H', 9: 'H', 10: 'H', 11: 'H' },
                 18: { 2: 'S', 3: 'D', 4: 'D', 5: 'D', 6: 'D', 7: 'S', 8: 'S', 9: 'H', 10: 'H', 11: 'H' },
                 19: { 2: 'S', 3: 'S', 4: 'S', 5: 'S', 6: 'S', 7: 'S', 8: 'S', 9: 'S', 10: 'S', 11: 'S' },
-                20: { 2: 'S', 3: 'S', 4: 'S', 5: 'S', 6: 'S', 7: 'S', 8: 'S', 9: 'S', 10: 'S', 11: 'S' }
+                20: { 2: 'S', 3: 'S', 4: 'S', 5: 'S', 6: 'S', 7: 'S', 8: 'S', 9: 'S', 10: 'S', 11: 'S' },
+                21: { 2: 'S', 3: 'S', 4: 'S', 5: 'S', 6: 'S', 7: 'S', 8: 'S', 9: 'S', 10: 'S', 11: 'S' }
             },
             pairs: {
                 'A': { 2: 'SP', 3: 'SP', 4: 'SP', 5: 'SP', 6: 'SP', 7: 'SP', 8: 'SP', 9: 'SP', 10: 'SP', 11: 'SP' },
@@ -446,7 +705,10 @@ class StrategyGuideApp {
                 '7': { 2: 'SP', 3: 'SP', 4: 'SP', 5: 'SP', 6: 'SP', 7: 'SP', 8: 'H', 9: 'H', 10: 'H', 11: 'H' },
                 '8': { 2: 'SP', 3: 'SP', 4: 'SP', 5: 'SP', 6: 'SP', 7: 'SP', 8: 'SP', 9: 'SP', 10: 'SP', 11: 'SP' },
                 '9': { 2: 'SP', 3: 'SP', 4: 'SP', 5: 'SP', 6: 'SP', 7: 'S', 8: 'SP', 9: 'SP', 10: 'S', 11: 'S' },
-                '10': { 2: 'S', 3: 'S', 4: 'S', 5: 'S', 6: 'S', 7: 'S', 8: 'S', 9: 'S', 10: 'S', 11: 'S' }
+                '10': { 2: 'S', 3: 'S', 4: 'S', 5: 'S', 6: 'S', 7: 'S', 8: 'S', 9: 'S', 10: 'S', 11: 'S' },
+                'J': { 2: 'S', 3: 'S', 4: 'S', 5: 'S', 6: 'S', 7: 'S', 8: 'S', 9: 'S', 10: 'S', 11: 'S' },
+                'Q': { 2: 'S', 3: 'S', 4: 'S', 5: 'S', 6: 'S', 7: 'S', 8: 'S', 9: 'S', 10: 'S', 11: 'S' },
+                'K': { 2: 'S', 3: 'S', 4: 'S', 5: 'S', 6: 'S', 7: 'S', 8: 'S', 9: 'S', 10: 'S', 11: 'S' }
             }
         };
     }
@@ -498,23 +760,25 @@ class StrategyGuideApp {
         const [type, value] = playerHand.split('-');
         let originalAction = 'H';
         let explanation = '';
+        const basicStrategyData = this.getBasicStrategyData();
 
         switch (type) {
             case 'hard':
                 const total = parseInt(value);
-                originalAction = this.basicStrategyData.hard[total]?.[dealerCard] || 'H';
+                originalAction = basicStrategyData.hard[total]?.[dealerCard] || 'H';
                 break;
             case 'soft':
                 const softTotal = parseInt(value);
-                originalAction = this.basicStrategyData.soft[softTotal]?.[dealerCard] || 'H';
+                originalAction = basicStrategyData.soft[softTotal]?.[dealerCard] || 'H';
                 break;
             case 'pairs':
-                originalAction = this.basicStrategyData.pairs[value]?.[dealerCard] || 'H';
+                originalAction = basicStrategyData.pairs[value]?.[dealerCard] || 'H';
                 break;
         }
 
         // Apply surrender rule
-        const action = this.getActionWithSurrenderRule(type, parseInt(value), dealerCard, originalAction);
+        const handValue = type === 'pairs' ? value : parseInt(value);
+        const action = this.getActionWithSurrenderRule(type, handValue, dealerCard, originalAction);
         
         // Get explanation for the final action
         switch (type) {
@@ -537,7 +801,8 @@ class StrategyGuideApp {
         const actionText = this.getActionName(action);
         
         // Check if this was a surrender scenario that was converted to a fallback
-        const originalAction = this.basicStrategyData.hard[total]?.[dealerCard] || 'H';
+        const basicStrategyData = this.getBasicStrategyData();
+        const originalAction = basicStrategyData.hard[total]?.[dealerCard] || 'H';
         const surrenderNotAllowed = originalAction === 'SU' && action !== 'SU';
 
         if (total <= 8) {
@@ -585,20 +850,27 @@ class StrategyGuideApp {
     getPairExplanation(pairValue, dealerCard, action) {
         const dealerText = dealerCard === 11 ? 'Ace' : dealerCard;
         
+        // Get the numeric value for pairs
+        const getPairTotal = (pairValue) => {
+            if (pairValue === 'A') return 12; // A-A can be 12 or 2
+            if (['J', 'Q', 'K'].includes(pairValue)) return 20;
+            return parseInt(pairValue) * 2;
+        };
+        
         if (action === 'SP') {
             if (pairValue === 'A') {
                 return `Always split Aces. Two chances at blackjack is better than one mediocre hand of 12.`;
             } else if (pairValue === '8') {
                 return `Always split 8s. Playing 16 is terrible, but two hands starting with 8 have potential.`;
             } else {
-                return `Split ${pairValue}s against dealer ${dealerText}. Better expected value than playing as ${parseInt(pairValue) * 2}.`;
+                return `Split ${pairValue}s against dealer ${dealerText}. Better expected value than playing as ${getPairTotal(pairValue)}.`;
             }
         } else if (pairValue === '5') {
             return `Never split 5s - treat as 10 and double down against dealer ${dealerText}.`;
-        } else if (pairValue === '10') {
-            return `Never split 10s. You have 20 - one of the best hands possible. Don't break it up.`;
+        } else if (['10', 'J', 'Q', 'K'].includes(pairValue)) {
+            return `Never split ${pairValue}s. You have 20 - one of the best hands possible. Don't break it up.`;
         } else {
-            return `Don't split ${pairValue}s against dealer ${dealerText}. Better to ${action === 'D' ? 'double' : action === 'S' ? 'stand' : 'hit'} on ${parseInt(pairValue) * 2}.`;
+            return `Don't split ${pairValue}s against dealer ${dealerText}. Better to ${action === 'D' ? 'double' : action === 'S' ? 'stand' : 'hit'} on ${getPairTotal(pairValue)}.`;
         }
     }
 
@@ -673,52 +945,59 @@ class StrategyGuideApp {
     generatePracticeScenarios() {
         const scenarios = [];
         const surrenderAllowed = document.getElementById('surrender-allowed')?.checked ?? true;
+        const basicStrategyData = this.getBasicStrategyData();
         
         // Hard totals scenarios
         for (let total = 9; total <= 16; total++) {
             for (let dealer = 2; dealer <= 11; dealer++) {
-                const originalAction = this.basicStrategyData.hard[total][dealer];
-                const correctAction = this.getActionWithSurrenderRule('hard', total, dealer, originalAction);
-                
-                scenarios.push({
-                    type: 'hard',
-                    playerHand: total,
-                    dealerCard: dealer,
-                    correctAction: correctAction,
-                    surrenderAllowed: surrenderAllowed
-                });
+                const originalAction = basicStrategyData.hard[total]?.[dealer];
+                if (originalAction) {
+                    const correctAction = this.getActionWithSurrenderRule('hard', total, dealer, originalAction);
+                    
+                    scenarios.push({
+                        type: 'hard',
+                        playerHand: total,
+                        dealerCard: dealer,
+                        correctAction: correctAction,
+                        surrenderAllowed: surrenderAllowed
+                    });
+                }
             }
         }
         
         // Soft totals scenarios
-        for (let total = 13; total <= 18; total++) {
+        for (let total = 13; total <= 21; total++) {
             for (let dealer = 2; dealer <= 11; dealer++) {
-                const originalAction = this.basicStrategyData.soft[total][dealer];
-                const correctAction = this.getActionWithSurrenderRule('soft', total, dealer, originalAction);
-                
-                scenarios.push({
-                    type: 'soft',
-                    playerHand: total,
-                    dealerCard: dealer,
-                    correctAction: correctAction,
-                    surrenderAllowed: surrenderAllowed
-                });
+                const originalAction = basicStrategyData.soft[total]?.[dealer];
+                if (originalAction) {
+                    const correctAction = this.getActionWithSurrenderRule('soft', total, dealer, originalAction);
+                    
+                    scenarios.push({
+                        type: 'soft',
+                        playerHand: total,
+                        dealerCard: dealer,
+                        correctAction: correctAction,
+                        surrenderAllowed: surrenderAllowed
+                    });
+                }
             }
         }
         
         // Pairs scenarios
-        ['A', '2', '3', '6', '7', '8', '9'].forEach(pair => {
+        ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'].forEach(pair => {
             for (let dealer = 2; dealer <= 11; dealer++) {
-                const originalAction = this.basicStrategyData.pairs[pair][dealer];
-                const correctAction = this.getActionWithSurrenderRule('pairs', pair, dealer, originalAction);
-                
-                scenarios.push({
-                    type: 'pairs',
-                    playerHand: pair,
-                    dealerCard: dealer,
-                    correctAction: correctAction,
-                    surrenderAllowed: surrenderAllowed
-                });
+                const originalAction = basicStrategyData.pairs[pair]?.[dealer];
+                if (originalAction) {
+                    const correctAction = this.getActionWithSurrenderRule('pairs', pair, dealer, originalAction);
+                    
+                    scenarios.push({
+                        type: 'pairs',
+                        playerHand: pair,
+                        dealerCard: dealer,
+                        correctAction: correctAction,
+                        surrenderAllowed: surrenderAllowed
+                    });
+                }
             }
         });
         
