@@ -1324,7 +1324,15 @@ p {
 .cta-section .btn {
     font-size: 1.2rem;
     padding: 1rem 2rem;
-    margin-bottom: 1rem;
+    margin-bottom: 2rem;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: fit-content;
+}
+
+.cta-section .btn:not(:disabled):hover {
+    transform: translateY(-1px) scale(1.01);
 }
 
 /* Footer */
