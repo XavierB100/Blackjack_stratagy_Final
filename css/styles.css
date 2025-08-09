@@ -287,7 +287,7 @@ p {
 .dealer-cards,
 .player-cards {
     display: flex;
-    gap: -20px;
+    gap: 12px; /* default spacing for responsive/wrap */
     min-height: 120px;
     align-items: center;
     margin-bottom: 1rem;
@@ -311,12 +311,40 @@ p {
     font-size: 14px;
     box-shadow: var(--card-shadow) 0 4px 8px;
     transition: all var(--animation-normal) var(--ease-smooth);
-    margin: 0 -10px;
+    margin: 0;
     position: relative;
     z-index: 1;
     transform-style: preserve-3d;
     backface-visibility: hidden;
     cursor: pointer;
+}
+
+/* Overlap style: keep visual fanned stack without covering labels behind */
+.dealer-cards .card,
+.player-cards .card {
+    margin-left: -32px; /* overlap amount */
+}
+
+.dealer-cards .card:first-child,
+.player-cards .card:first-child {
+    margin-left: 0;
+}
+
+/* Ensure totals/messages sit above card stack visually but do not get covered */
+.dealer-total,
+.player-total,
+.game-messages {
+    position: relative;
+    z-index: 5;
+}
+
+/* Push the player stack above the betting box to avoid covering controls */
+.player-section {
+    margin-bottom: 2.5rem;
+}
+
+.betting-area {
+    z-index: 6;
 }
 
 .card:hover {
@@ -465,6 +493,9 @@ p {
     text-align: center;
 }
 
+.dealer-total { margin-top: 0.75rem; }
+.player-total { margin-top: 0.5rem; }
+
 /* Game Messages */
 .game-messages {
     text-align: center;
@@ -473,6 +504,8 @@ p {
     background: rgba(0, 0, 0, 0.6);
     border-radius: var(--border-radius);
     border: 2px solid var(--gold);
+    position: relative;
+    z-index: 5;
 }
 
 .game-messages p {
@@ -484,10 +517,8 @@ p {
 
 /* Betting Area */
 .betting-area {
-    position: absolute;
-    bottom: 2rem;
-    left: 50%;
-    transform: translateX(-50%);
+    position: static;
+    margin: 1.5rem auto 0;
     background: rgba(0, 0, 0, 0.8);
     padding: 1rem 2rem;
     border-radius: var(--border-radius);

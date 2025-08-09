@@ -43,6 +43,11 @@ export class Statistics {
             // Load saved statistics
             this.loadAllStatistics();
             
+            // Hook auto-save event
+            document.addEventListener('stats:autoSave', () => {
+                try { this.saveStatistics(); } catch (e) { console.warn('Auto-save failed:', e); }
+            });
+            
             this.isInitialized = true;
             console.log('✅ Statistics initialized with modular architecture');
         } catch (error) {

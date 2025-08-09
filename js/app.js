@@ -201,13 +201,13 @@ class BlackjackApp {
     saveUserPreferences() {
         try {
             const preferences = {
-                deckCount: this.gameController.getDeckCount(),
-                showBasicStrategyHints: this.gameController.getShowHints(),
-                cardCountingMode: this.gameController.getCardCountingMode(),
+                deckCount: this.gameController?.getDeckCount?.() ?? this.gameController?.gameState?.getSetting('deckCount'),
+                showBasicStrategyHints: this.gameController?.getShowHints?.() ?? this.gameController?.gameState?.getSetting('showBasicStrategyHints'),
+                cardCountingMode: this.gameController?.getCardCountingMode?.() ?? this.gameController?.gameState?.getSetting('cardCountingMode'),
                 bankAmount: this.statistics.getBankAmount(),
-                lastBetAmount: this.gameController.getLastBetAmount(),
-                soundEnabled: this.uiController.getSoundEnabled(),
-                animationsEnabled: this.uiController.getAnimationsEnabled()
+                lastBetAmount: this.gameController?.getLastBetAmount?.() ?? this.gameController?.gameState?.getCurrentBet?.(),
+                soundEnabled: this.uiController.getSoundEnabled?.() ?? false,
+                animationsEnabled: this.uiController.getAnimationsEnabled?.() ?? true
             };
             
             localStorage.setItem('blackjackpro_preferences', JSON.stringify(preferences));

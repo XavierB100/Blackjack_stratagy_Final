@@ -56,6 +56,8 @@ export class GameController {
             this.gameFlow = new GameFlow(
                 this.gameState, this.deck, this.ui, this.statistics, this.rules, this.cardCounting
             );
+            // Allow GameFlow to delegate to ActionHandler where needed
+            this.gameFlow.actionHandler = this.actionHandler;
             
             // Initialize card counting module
             await this.cardCounting.init();
@@ -443,6 +445,7 @@ export class GameController {
         
         const bettingData = {
             ...bettingRec,
+            currentBet: this.gameState.getCurrentBet(),
             expectedEV: evData.expectedValue,
             riskOfRuin: this.cardCounting.getRiskOfRuin(
                 this.statistics.getBankAmount(),
@@ -578,7 +581,7 @@ export class GameController {
                 isDoubled: hand.isDoubled,
                 isSplit: hand.isSplit
             })),
-            deckState: this.deck ? this.deck.getRemainingCards() : null
+            deckState: this.deck ? { cardsRemaining: this.deck.getCardsRemaining?.() } : null
         };
     }
 

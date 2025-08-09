@@ -65,19 +65,14 @@ export class GameRules {
     /**
      * Check if double down is allowed
      */
-    canDoubleDown(hand, gameState) {
+    canDoubleDown(hand) {
         // Must be exactly 2 cards
         if (hand.cards.length !== 2) {
             return false;
         }
         
-        // Cannot double after split aces in most casinos
-        if (gameState.isSplitAces && !this.rules.hitSplitAces) {
-            return false;
-        }
-        
-        // Check if double after split is allowed
-        if (gameState.isSplitHand && !this.rules.doubleAfterSplit) {
+        // Respect double-after-split rule
+        if (hand.isSplit && !this.rules.doubleAfterSplit) {
             return false;
         }
         
@@ -103,7 +98,7 @@ export class GameRules {
         }
         
         // Check if resplitting aces is allowed
-        if (hand.cards[0].rank === 'A' && gameState.isSplitHand && !this.rules.resplitAces) {
+        if (hand.cards[0].rank === 'A' && hand.isSplit && !this.rules.resplitAces) {
             return false;
         }
         

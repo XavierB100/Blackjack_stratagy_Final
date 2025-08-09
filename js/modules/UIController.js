@@ -342,10 +342,13 @@ export class UIController {
      * Update card counting display
      */
     updateCardCountingDisplay(countData) {
+        const running = (countData.runningCount ?? countData.running ?? 0);
+        const trueCt = (countData.trueCount ?? countData.true ?? 0);
+        const decksRem = (countData.decksRemaining ?? 6);
         const updates = [
-            { type: 'text', element: 'runningCount', value: countData.running || 0 },
-            { type: 'text', element: 'trueCount', value: (countData.true || 0).toFixed(1) },
-            { type: 'text', element: 'decksRemaining', value: (countData.decksRemaining || 6).toFixed(1) }
+            { type: 'text', element: 'runningCount', value: running },
+            { type: 'text', element: 'trueCount', value: Number(trueCt).toFixed(1) },
+            { type: 'text', element: 'decksRemaining', value: Number(decksRem).toFixed(1) }
         ];
         
         this.dom.batchUpdate(updates);
@@ -355,10 +358,10 @@ export class UIController {
      * Toggle card counting display visibility
      */
     toggleCardCountingDisplay(show) {
-        const countCard = this.dom.findElement('.stats-card:last-child');
-        if (countCard) {
-            this.dom.setVisible('countCard', show);
-        }
+        // Find the Card Count stats card robustly by its heading
+        const cards = Array.from(document.querySelectorAll('.stats-card'));
+        const countCard = cards.find(c => c.querySelector('h3')?.textContent?.toLowerCase().includes('card count'));
+        if (countCard) countCard.style.display = show ? '' : 'none';
     }
 
     /**
@@ -446,6 +449,10 @@ export class UIController {
         console.log(`🔊 Sound effects ${enabled ? 'enabled' : 'disabled'}`);
     }
 
+    getSoundEnabled() {
+        return !!this.sounds.enabled;
+    }
+
     // ===== ANIMATION CONTROLS =====
     
     /**
@@ -454,6 +461,10 @@ export class UIController {
     setAnimationsEnabled(enabled) {
         this.animations.setEnabled(enabled);
         console.log(`🎬 Animations ${enabled ? 'enabled' : 'disabled'}`);
+    }
+
+    getAnimationsEnabled() {
+        return !!this.animations.getSettings().enabled;
     }
 
     /**

@@ -555,8 +555,12 @@ export class DataPersistence {
         }
         
         this.autoSaveTimer = setInterval(() => {
-            // This will be called by the Statistics class
-            console.log('🔄 Auto-save triggered');
+            // Ask the host (Statistics instance) to save via a custom event
+            try {
+                document.dispatchEvent(new CustomEvent('stats:autoSave'));
+            } catch (e) {
+                console.warn('Auto-save event dispatch failed:', e);
+            }
         }, this.autoSaveInterval);
         
         console.log(`⏰ Auto-save started (${this.autoSaveInterval / 1000}s interval)`);
