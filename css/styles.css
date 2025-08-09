@@ -3937,6 +3937,206 @@ button:focus {
 }
 
 /* Print-friendly drill sections */
+/* Educational Content Styles for Drills */
+.drill-education {
+    background: rgba(45, 90, 45, 0.2);
+    border: 1px solid var(--light-green);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    backdrop-filter: blur(5px);
+}
+
+.educational-overview {
+    margin-bottom: 2rem;
+}
+
+.educational-overview h4 {
+    color: var(--gold);
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.educational-overview h4::before {
+    content: "📚";
+    margin-right: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.learning-objectives,
+.progression-path,
+.success-metrics,
+.common-mistakes,
+.practice-tips,
+.why-true-count,
+.critical-situations,
+.practice-methodology,
+.success-benchmarks,
+.scenario-breakdown,
+.real-world-challenges,
+.training-progression,
+.success-indicators,
+.critical-warnings,
+.betting-theory,
+.betting-scenarios-explained,
+.critical-concepts,
+.common-betting-errors,
+.success-metrics-betting,
+.advanced-concepts,
+.financial-reality {
+    margin-bottom: 2rem;
+}
+
+.learning-objectives h4,
+.progression-path h4,
+.success-metrics h4,
+.common-mistakes h4,
+.practice-tips h4,
+.why-true-count h4,
+.critical-situations h4,
+.practice-methodology h4,
+.success-benchmarks h4,
+.scenario-breakdown h4,
+.real-world-challenges h4,
+.training-progression h4,
+.success-indicators h4,
+.critical-warnings h4,
+.betting-theory h4,
+.betting-scenarios-explained h4,
+.critical-concepts h4,
+.common-betting-errors h4,
+.success-metrics-betting h4,
+.advanced-concepts h4,
+.financial-reality h4 {
+    color: var(--light-green);
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid var(--light-green);
+    padding-bottom: 0.5rem;
+}
+
+.progression-stages {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.stage {
+    background: rgba(255, 215, 0, 0.1);
+    border-left: 4px solid var(--gold);
+    padding: 1rem;
+    border-radius: 0 var(--border-radius) var(--border-radius) 0;
+}
+
+.stage h5 {
+    color: var(--gold);
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.mistake-item,
+.challenge-item,
+.scenario-detail,
+.situation-item,
+.error-item,
+.concept-item,
+.advanced-concept,
+.betting-principle,
+.scenario-explanation {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: var(--border-radius);
+}
+
+.mistake-item h5,
+.challenge-item h5,
+.scenario-detail h5,
+.situation-item h5,
+.error-item h5,
+.concept-item h5,
+.advanced-concept h5,
+.betting-principle h5,
+.scenario-explanation h5 {
+    color: var(--gold);
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+.concept-explanation {
+    background: rgba(255, 215, 0, 0.1);
+    border: 1px solid var(--gold);
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    margin: 1rem 0;
+}
+
+.warning-box,
+.reality-box {
+    background: rgba(220, 38, 38, 0.2);
+    border: 2px solid var(--red);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    margin: 1rem 0;
+}
+
+.warning-box p,
+.reality-box p {
+    margin-bottom: 1rem;
+}
+
+.warning-box strong,
+.reality-box strong {
+    color: var(--gold);
+}
+
+.drill-education ul {
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+}
+
+.drill-education li {
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+}
+
+.drill-education li strong {
+    color: var(--gold);
+}
+
+.drill-education ol {
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+}
+
+.drill-education ol li {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+/* Responsive adjustments for educational content */
+@media (max-width: 768px) {
+    .drill-education {
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .educational-overview h4 {
+        font-size: 1.2rem;
+    }
+    
+    .progression-stages {
+        grid-template-columns: 1fr;
+    }
+    
+    .stage {
+        padding: 0.8rem;
+    }
+}
+
 @media print {
     .drill-controls,
     .tab-btn,
@@ -3955,5 +4155,498 @@ button:focus {
         border: 1px solid #000;
         padding: 0.5rem;
         margin: 0.5rem 0;
+    }
+    
+    .drill-education {
+        background: white;
+        color: black;
+        border: 2px solid #000;
+    }
+    
+    .drill-education h4 {
+        color: #000;
+        border-bottom-color: #000;
+    }
+    
+    .stage {
+        border-left-color: #000;
+        background: #f5f5f5;
+    }
+}
+
+/* Enhanced Casino Scenarios Styling */
+.scenario-round-header {
+    background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+    color: var(--gold);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.cards-dealt-visual {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    justify-content: center;
+}
+
+.card-mini {
+    width: 40px;
+    height: 56px;
+    background: white;
+    border: 2px solid var(--dark-green);
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2px;
+    font-size: 0.7rem;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.card-mini.red {
+    color: #dc2626;
+}
+
+.card-mini.black {
+    color: #000;
+}
+
+.card-mini:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.card-mini[data-value="1"],
+.card-mini[data-value="-1"] {
+    border-color: var(--gold);
+    background: rgba(255, 215, 0, 0.1);
+}
+
+.card-value {
+    background: rgba(0, 0, 0, 0.8);
+    color: var(--gold);
+    border-radius: 3px;
+    padding: 1px 3px;
+    font-size: 0.6rem;
+    font-weight: bold;
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.round-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    color: var(--light-gray);
+}
+
+.count-change {
+    color: var(--gold);
+    font-weight: bold;
+}
+
+.table-positions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    margin: 1rem 0;
+}
+
+.player-position {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--dark-green);
+    border-radius: 10px;
+    padding: 0.75rem;
+    text-align: center;
+    min-width: 100px;
+}
+
+.player-name {
+    color: var(--gold);
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.player-hand {
+    display: flex;
+    gap: 2px;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+}
+
+.table-card {
+    width: 24px;
+    height: 34px;
+    background: white;
+    border: 1px solid var(--dark-green);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    font-weight: bold;
+}
+
+.table-card.red {
+    color: #dc2626;
+}
+
+.table-card.black {
+    color: #000;
+}
+
+.your-position-marker {
+    color: var(--gold);
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+}
+
+.scenario-distractions {
+    position: relative;
+    min-height: 100px;
+    margin: 1rem 0;
+}
+
+.table-chatter-bubble {
+    position: absolute;
+    background: rgba(52, 73, 94, 0.9);
+    color: var(--light-gray);
+    padding: 0.5rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    max-width: 150px;
+    z-index: 10;
+    animation: chatter-bubble 3s ease-in-out forwards;
+    border: 1px solid rgba(149, 165, 166, 0.3);
+}
+
+.counting-pressure-bar {
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid var(--gold);
+    border-radius: 10px;
+    padding: 0.5rem;
+    margin: 1rem 0;
+}
+
+.pressure-label {
+    color: var(--gold);
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+
+.pressure-fill {
+    height: 8px;
+    background: linear-gradient(90deg, var(--primary-green), var(--gold), #dc2626);
+    border-radius: 4px;
+    width: 100%;
+}
+
+.shuffle-tracking-info {
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid var(--dark-green);
+    border-radius: 10px;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.deck-penetration {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.deck-penetration label {
+    color: var(--gold);
+    font-weight: bold;
+    min-width: 120px;
+}
+
+.penetration-bar {
+    flex: 1;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.penetration-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-green), var(--gold), #dc2626);
+    border-radius: 10px;
+    transition: width 0.5s ease;
+}
+
+.penetration-text {
+    color: var(--light-gray);
+    font-weight: bold;
+    min-width: 40px;
+}
+
+.cut-card-position {
+    color: var(--light-gray);
+    font-style: italic;
+    text-align: center;
+}
+
+.shuffle-animation {
+    font-size: 2rem;
+    text-align: center;
+    margin: 1rem 0;
+    animation: shuffle-spin 2s linear infinite;
+}
+
+/* Enhanced Betting Practice Styling */
+.enhanced-scenario-info {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(30, 30, 30, 0.8));
+    border: 2px solid var(--gold);
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+}
+
+.scenario-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--gold);
+}
+
+.scenario-header h4 {
+    color: var(--gold);
+    margin: 0;
+    font-size: 1.3rem;
+}
+
+.difficulty-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.difficulty-beginner {
+    background: var(--primary-green);
+    color: white;
+}
+
+.difficulty-intermediate {
+    background: var(--gold);
+    color: var(--black);
+}
+
+.difficulty-advanced {
+    background: #f39c12;
+    color: white;
+}
+
+.difficulty-expert {
+    background: #e74c3c;
+    color: white;
+}
+
+.scenario-description {
+    margin-bottom: 1rem;
+}
+
+.scenario-description p {
+    color: var(--light-gray);
+    font-style: italic;
+    margin: 0;
+}
+
+.scenario-details {
+    display: grid;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+}
+
+.detail-item label {
+    color: var(--gold);
+    font-weight: bold;
+}
+
+.detail-item span {
+    color: var(--light-gray);
+}
+
+.heat-warning {
+    border-left: 4px solid #f39c12;
+}
+
+.risk-warning {
+    border-left: 4px solid #e74c3c;
+}
+
+.loss-info {
+    border-left: 4px solid #8e44ad;
+}
+
+.warning {
+    border-left: 4px solid #e74c3c;
+    background: rgba(231, 76, 60, 0.1);
+}
+
+.heat-meter {
+    flex: 1;
+    height: 12px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    margin: 0 0.5rem;
+    overflow: hidden;
+    position: relative;
+}
+
+.heat-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-green), var(--gold), #e74c3c);
+    border-radius: 6px;
+    transition: width 0.5s ease;
+}
+
+.risk-percentage {
+    font-weight: bold;
+}
+
+.risk-low {
+    color: var(--primary-green);
+}
+
+.risk-medium {
+    color: var(--gold);
+}
+
+.risk-high {
+    color: #f39c12;
+}
+
+.risk-critical {
+    color: #e74c3c;
+    font-weight: bold;
+    animation: pulse 2s infinite;
+}
+
+.betting-guidelines {
+    background: rgba(255, 215, 0, 0.1);
+    border: 1px solid var(--gold);
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.betting-guidelines h5 {
+    color: var(--gold);
+    margin: 0 0 0.5rem 0;
+}
+
+.betting-guidelines ul {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+.betting-guidelines li {
+    color: var(--light-gray);
+    margin-bottom: 0.5rem;
+}
+
+.betting-guidelines li:last-child {
+    margin-bottom: 0;
+}
+
+/* Animations */
+@keyframes chatter-bubble {
+    0% { 
+        opacity: 0; 
+        transform: scale(0.8) translateY(10px); 
+    }
+    20% { 
+        opacity: 1; 
+        transform: scale(1) translateY(0); 
+    }
+    80% { 
+        opacity: 1; 
+        transform: scale(1) translateY(0); 
+    }
+    100% { 
+        opacity: 0; 
+        transform: scale(0.8) translateY(-10px); 
+    }
+}
+
+@keyframes shuffle-spin {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(90deg) scale(1.1); }
+    50% { transform: rotate(180deg); }
+    75% { transform: rotate(270deg) scale(1.1); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* Mobile responsive updates for enhanced features */
+@media (max-width: 768px) {
+    .cards-dealt-visual {
+        gap: 0.25rem;
+    }
+    
+    .card-mini {
+        width: 32px;
+        height: 45px;
+        font-size: 0.6rem;
+    }
+    
+    .table-positions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .enhanced-scenario-info {
+        padding: 1rem;
+    }
+    
+    .scenario-header {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+    }
+    
+    .detail-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .heat-meter {
+        margin: 0;
+        width: 100%;
     }
 }

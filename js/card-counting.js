@@ -848,15 +848,226 @@ class CardCountingApp {
     }
 
     displayScenarioCards(cards) {
-        // Simple display - in a real implementation, this would show cards on the virtual table
+        // Enhanced card display with visual representation
         const dealerArea = document.getElementById('scenario-dealer-cards');
         const playerAreas = document.getElementById('scenario-player-areas');
         
         if (dealerArea) {
-            dealerArea.innerHTML = `<div class="scenario-round">Round ${this.scenarioState.round}: ${cards.length} cards dealt</div>`;
+            dealerArea.innerHTML = `
+                <div class="scenario-round-header">Round ${this.scenarioState.round}</div>
+                <div class="cards-dealt-visual">
+                    ${this.createCardVisualGrid(cards)}
+                </div>
+                <div class="round-summary">
+                    <span class="cards-count">${cards.length} cards dealt</span>
+                    <span class="count-change">Running Count: ${this.scenarioState.actualCount}</span>
+                </div>
+            `;
         }
         
+        if (playerAreas) {
+            const numPlayers = this.scenarioState.type === 'crowded' ? 7 : 
+                              this.scenarioState.type === 'basic' ? 4 : 5;
+            playerAreas.innerHTML = this.generatePlayerPositionsHTML(numPlayers, cards);
+        }
+        
+        // Add realistic distraction elements based on scenario type
+        this.addScenarioDistractions();
+        
         console.log(`🃏 Round ${this.scenarioState.round}: Dealt ${cards.length} cards, Running Count: ${this.scenarioState.actualCount}`);
+    }
+
+    createCardVisualGrid(cards) {
+        return cards.map(card => `
+            <div class="card-mini ${card.color}" data-value="${card.getHiLoValue()}">
+                <div class="card-face">
+                    ${card.getDisplayValue()}${card.suit}
+                </div>
+                <div class="card-value">${card.getHiLoValue() > 0 ? '+' : ''}${card.getHiLoValue()}</div>
+            </div>
+        `).join('');
+    }
+
+    generatePlayerPositionsHTML(numPlayers, cards) {
+        let html = '<div class="table-positions">';
+        
+        // Distribute cards among players (simplified)
+        let cardIndex = 0;
+        for (let i = 1; i <= numPlayers; i++) {
+            const playerCards = cards.slice(cardIndex, cardIndex + 2);
+            cardIndex += 2;
+            
+            html += `
+                <div class="player-position" data-position="${i}">
+                    <div class="player-name">${i === 4 ? 'You' : `Player ${i}`}</div>
+                    <div class="player-hand">
+                        ${playerCards.map(card => `
+                            <div class="table-card ${card.color}">
+                                ${card.getDisplayValue()}${card.suit}
+                            </div>
+                        `).join('')}
+                    </div>
+                    ${i === 4 ? '<div class="your-position-marker">▼ Your Position</div>' : ''}
+                </div>
+            `;
+        }
+        
+        html += '</div>';
+        return html;
+    }
+
+    addScenarioDistractions() {
+        if (!this.scenarioState.active) return;
+        
+        const distractionContainer = document.getElementById('scenario-distractions') || this.createDistractionsContainer();
+        
+        switch(this.scenarioState.type) {
+            case 'crowded':
+                this.addCrowdedTableDistractions(distractionContainer);
+                break;
+            case 'fast':
+                this.addFastDealerPressure(distractionContainer);
+                break;
+            case 'shuffle':
+                this.addShuffleTrackingElements(distractionContainer);
+                break;
+            default:
+                this.addBasicDistractions(distractionContainer);
+        }
+    }
+
+    createDistractionsContainer() {
+        const container = document.createElement('div');
+        container.id = 'scenario-distractions';
+        container.className = 'scenario-distractions';
+        
+        const scenarioDisplay = document.getElementById('scenario-display');
+        if (scenarioDisplay) {
+            scenarioDisplay.appendChild(container);
+        }
+        
+        return container;
+    }
+
+    addCrowdedTableDistractions(container) {
+        const chatMessages = [
+            "What should I hit on?", "Dealer's got 20 again!", "I'm down $300 tonight",
+            "Insurance anyone?", "Should I split these?", "Hit me!", "I'll stay",
+            "Double down time", "This shoe is terrible", "Cocktail waitress!"
+        ];
+        
+        // Random chatter every 3-8 seconds
+        setTimeout(() => {
+            if (this.scenarioState.active && this.scenarioState.type === 'crowded') {
+                this.showTableChatter(container, chatMessages[Math.floor(Math.random() * chatMessages.length)]);
+                this.addCrowdedTableDistractions(container); // Recursive call
+            }
+        }, 3000 + Math.random() * 5000);
+    }
+
+    addFastDealerPressure(container) {
+        const pressureBar = document.createElement('div');
+        pressureBar.className = 'counting-pressure-bar';
+        pressureBar.innerHTML = `
+            <div class="pressure-label">Decision Time</div>
+            <div class="pressure-fill"></div>
+        `;
+        
+        container.appendChild(pressureBar);
+        
+        // Animate pressure countdown
+        setTimeout(() => {
+            const fill = pressureBar.querySelector('.pressure-fill');
+            if (fill) {
+                fill.style.animation = 'pressureCountdown 2s linear';
+            }
+        }, 100);
+    }
+
+    addShuffleTrackingElements(container) {
+        // Show cut card position and deck status
+        const shuffleInfo = document.createElement('div');
+        shuffleInfo.className = 'shuffle-tracking-info';
+        shuffleInfo.innerHTML = `
+            <div class="deck-penetration">
+                <label>Deck Penetration:</label>
+                <div class="penetration-bar">
+                    <div class="penetration-fill" style="width: ${100 - (this.scenarioState.deck.cards.length / 312) * 100}%"></div>
+                </div>
+                <span class="penetration-text">${Math.round(100 - (this.scenarioState.deck.cards.length / 312) * 100)}%</span>
+            </div>
+            <div class="cut-card-position">Cut card at ~75% penetration</div>
+        `;
+        
+        container.appendChild(shuffleInfo);
+        
+        // Trigger shuffle break when appropriate
+        if (this.scenarioState.deck.cards.length < 80) { // ~75% penetration
+            setTimeout(() => this.triggerShuffleBreak(), 2000);
+        }
+    }
+
+    addBasicDistractions(container) {
+        // Light, occasional distractions for basic scenario
+        if (Math.random() < 0.1) {
+            this.showTableChatter(container, "Nice hand!");
+        }
+    }
+
+    showTableChatter(container, message) {
+        const chatterBubble = document.createElement('div');
+        chatterBubble.className = 'table-chatter-bubble';
+        chatterBubble.textContent = message;
+        chatterBubble.style.left = Math.random() * 60 + 20 + '%';
+        chatterBubble.style.top = Math.random() * 40 + 30 + '%';
+        
+        container.appendChild(chatterBubble);
+        
+        // Remove after animation
+        setTimeout(() => {
+            if (chatterBubble.parentNode) {
+                chatterBubble.parentNode.removeChild(chatterBubble);
+            }
+        }, 3000);
+    }
+
+    triggerShuffleBreak() {
+        console.log('🔄 Triggering shuffle break');
+        this.scenarioState.active = false;
+        
+        const feedbackDiv = document.getElementById('scenario-feedback');
+        if (feedbackDiv) {
+            feedbackDiv.querySelector('.feedback-content').innerHTML = `
+                <h4>🔄 Shuffle Break</h4>
+                <p><strong>Maintain your count!</strong></p>
+                <p>Pre-shuffle running count: ${this.scenarioState.actualCount}</p>
+                <p>Shuffling deck... Please wait while maintaining your mental count.</p>
+                <div class="shuffle-animation">🃏 🔄 🃏 🔄 🃏</div>
+                <button class="btn btn-primary" onclick="window.CardCountingApp.resumeAfterShuffle()">Resume After Shuffle</button>
+            `;
+            feedbackDiv.style.display = 'block';
+        }
+        
+        // Reset deck and count after shuffle
+        setTimeout(() => {
+            this.scenarioState.deck = new Deck(6);
+            this.scenarioState.deck.shuffle();
+            this.scenarioState.actualCount = 0;
+        }, 3000);
+    }
+
+    resumeAfterShuffle() {
+        console.log('▶️ Resuming after shuffle');
+        this.scenarioState.active = true;
+        this.scenarioState.round = 0;
+        
+        const feedbackDiv = document.getElementById('scenario-feedback');
+        if (feedbackDiv) {
+            feedbackDiv.style.display = 'none';
+        }
+        
+        // Continue with new shoe
+        setTimeout(() => this.dealScenarioRound(), 1000);
     }
 
     endScenario() {
@@ -934,35 +1145,145 @@ class CardCountingApp {
     }
 
     generateBettingScenario() {
-        // Generate random true count (-5 to +8)
-        const trueCount = Math.round((Math.random() * 13 - 5) * 2) / 2;
+        // Generate diverse scenario types with different complexity levels
+        const scenarioTypes = [
+            'basic_bet_sizing', 'high_count_opportunity', 'negative_count_preservation',
+            'table_limit_constraints', 'heat_management', 'variance_recovery',
+            'bankroll_pressure', 'camouflage_betting', 'wonging_decision', 'team_play'
+        ];
         
-        // Vary bankroll slightly
-        const bankrollVariation = Math.floor(Math.random() * 1000) - 500;
-        const currentBankroll = Math.max(5000, this.bettingStats.bankroll + bankrollVariation);
+        const selectedType = scenarioTypes[Math.floor(Math.random() * scenarioTypes.length)];
+        this.bettingStats.currentScenario = this.createScenarioByType(selectedType);
         
-        // Calculate risk level
-        const riskLevel = currentBankroll > 15000 ? 'Low' : 
-                         currentBankroll > 8000 ? 'Medium' : 'High';
-        
-        this.bettingStats.currentScenario = {
-            trueCount,
-            bankroll: currentBankroll,
-            riskLevel,
-            minBet: 25,
-            maxBet: 500
-        };
-        
-        // Update display
+        // Update display with enhanced information
         this.updateBettingScenarioDisplay();
         
-        console.log(`💰 New betting scenario: TC=${trueCount}, Bankroll=$${currentBankroll}`);
+        console.log(`💰 New betting scenario (${selectedType}): TC=${this.bettingStats.currentScenario.trueCount}, Bankroll=$${this.bettingStats.currentScenario.bankroll}`);
+    }
+
+    createScenarioByType(type) {
+        const baseScenario = {
+            type: type,
+            minBet: 25,
+            maxBet: 500,
+            tableLimits: { min: 25, max: 500 },
+            sessionTime: Math.floor(Math.random() * 180) + 60, // 60-240 minutes
+            previousSessions: Math.floor(Math.random() * 10), // 0-10 previous sessions
+        };
+
+        switch(type) {
+            case 'basic_bet_sizing':
+                return {
+                    ...baseScenario,
+                    trueCount: Math.round((Math.random() * 6 + 1) * 2) / 2, // +1 to +6
+                    bankroll: 15000 + Math.random() * 10000, // $15K-25K
+                    riskLevel: 'Low',
+                    scenario: 'Basic Bet Sizing',
+                    description: 'Standard positive count - convert true count to bet units',
+                    difficulty: 'Beginner'
+                };
+
+            case 'high_count_opportunity':
+                return {
+                    ...baseScenario,
+                    trueCount: Math.round((Math.random() * 4 + 6) * 2) / 2, // +6 to +10
+                    bankroll: 20000 + Math.random() * 15000, // $20K-35K
+                    riskLevel: 'Low',
+                    scenario: 'High Count Opportunity',
+                    description: 'Rare high count - maximize profit while managing heat',
+                    difficulty: 'Intermediate',
+                    heatFactor: Math.random() * 0.7 + 0.3 // 30-100% heat
+                };
+
+            case 'negative_count_preservation':
+                return {
+                    ...baseScenario,
+                    trueCount: Math.round((Math.random() * 4 - 6) * 2) / 2, // -6 to -2
+                    bankroll: 8000 + Math.random() * 7000, // $8K-15K
+                    riskLevel: 'Medium',
+                    scenario: 'Bankroll Preservation',
+                    description: 'Negative count - minimize losses and preserve bankroll',
+                    difficulty: 'Beginner'
+                };
+
+            case 'table_limit_constraints':
+                const highMinTable = Math.random() < 0.5;
+                return {
+                    ...baseScenario,
+                    trueCount: Math.round((Math.random() * 6 + 2) * 2) / 2, // +2 to +8
+                    bankroll: 10000 + Math.random() * 10000,
+                    tableLimits: highMinTable ? 
+                        { min: 100, max: 1000 } : 
+                        { min: 25, max: 200 },
+                    minBet: highMinTable ? 100 : 25,
+                    maxBet: highMinTable ? 1000 : 200,
+                    riskLevel: highMinTable ? 'High' : 'Medium',
+                    scenario: 'Table Limit Constraints',
+                    description: `${highMinTable ? 'High-limit' : 'Low-limit'} table - adjust strategy to limits`,
+                    difficulty: 'Intermediate'
+                };
+
+            case 'heat_management':
+                return {
+                    ...baseScenario,
+                    trueCount: Math.round((Math.random() * 4 + 3) * 2) / 2, // +3 to +7
+                    bankroll: 15000 + Math.random() * 10000,
+                    riskLevel: 'Medium',
+                    scenario: 'Heat Management',
+                    description: 'Pit boss watching - balance profit with camouflage',
+                    difficulty: 'Advanced',
+                    heatFactor: Math.random() * 0.4 + 0.6, // 60-100% heat
+                    pitBossPresent: true,
+                    previousSuspicion: true
+                };
+
+            case 'variance_recovery':
+                return {
+                    ...baseScenario,
+                    trueCount: Math.round((Math.random() * 6 + 1) * 2) / 2, // +1 to +7
+                    bankroll: 3000 + Math.random() * 5000, // $3K-8K (reduced bankroll)
+                    riskLevel: 'High',
+                    scenario: 'Variance Recovery',
+                    description: 'Depleted bankroll from bad run - conservative approach needed',
+                    difficulty: 'Advanced',
+                    previousLosses: 7000 + Math.random() * 5000, // Lost $7K-12K
+                    sessionCount: Math.floor(Math.random() * 5) + 3 // 3-8 losing sessions
+                };
+
+            case 'bankroll_pressure':
+                const lowBankroll = 2000 + Math.random() * 3000; // $2K-5K
+                return {
+                    ...baseScenario,
+                    trueCount: Math.round((Math.random() * 4 + 2) * 2) / 2, // +2 to +6
+                    bankroll: lowBankroll,
+                    riskLevel: 'Critical',
+                    scenario: 'Critical Bankroll',
+                    description: 'Dangerously low bankroll - survival betting required',
+                    difficulty: 'Expert',
+                    riskOfRuin: this.calculateRiskOfRuin(lowBankroll, 25, 100)
+                };
+
+            default:
+                return this.createScenarioByType('basic_bet_sizing');
+        }
+    }
+
+    calculateRiskOfRuin(bankroll, minBet, maxBet) {
+        // Simplified risk of ruin calculation
+        const units = bankroll / minBet;
+        const spread = maxBet / minBet;
+        
+        // Approximation formula for risk of ruin
+        if (units < 100) return Math.min(95, 40 - units * 0.3);
+        if (units < 200) return Math.max(5, 20 - units * 0.1);
+        return Math.max(1, 10 - units * 0.02);
     }
 
     updateBettingScenarioDisplay() {
         const scenario = this.bettingStats.currentScenario;
         if (!scenario) return;
         
+        // Update basic scenario information
         const trueCountElement = document.getElementById('betting-true-count');
         const bankrollElement = document.getElementById('current-bankroll');
         const riskLevelElement = document.getElementById('risk-level');
@@ -974,22 +1295,160 @@ class CardCountingApp {
         }
         
         if (bankrollElement) {
-            bankrollElement.textContent = `$${scenario.bankroll.toLocaleString()}`;
+            bankrollElement.textContent = `$${Math.round(scenario.bankroll).toLocaleString()}`;
         }
         
         if (riskLevelElement) {
             riskLevelElement.textContent = scenario.riskLevel;
-            riskLevelElement.className = scenario.riskLevel.toLowerCase();
+            riskLevelElement.className = `risk-${scenario.riskLevel.toLowerCase()}`;
         }
         
+        // Add enhanced scenario information
+        this.displayEnhancedScenarioInfo(scenario);
+        
+        // Update betting constraints
         if (betAmountInput) {
             betAmountInput.value = '';
+            betAmountInput.min = scenario.minBet || scenario.tableLimits?.min || 25;
+            betAmountInput.max = scenario.maxBet || scenario.tableLimits?.max || 500;
+            betAmountInput.step = 5;
             betAmountInput.focus();
         }
         
         if (feedbackDiv) {
             feedbackDiv.style.display = 'none';
         }
+    }
+
+    displayEnhancedScenarioInfo(scenario) {
+        // Create or update enhanced scenario info panel
+        let infoPanel = document.getElementById('enhanced-scenario-info');
+        if (!infoPanel) {
+            infoPanel = document.createElement('div');
+            infoPanel.id = 'enhanced-scenario-info';
+            infoPanel.className = 'enhanced-scenario-info';
+            
+            const countSituation = document.querySelector('.count-situation');
+            if (countSituation) {
+                countSituation.appendChild(infoPanel);
+            }
+        }
+        
+        let enhancedInfo = `
+            <div class="scenario-header">
+                <h4>${scenario.scenario || 'Betting Scenario'}</h4>
+                <div class="difficulty-badge difficulty-${scenario.difficulty?.toLowerCase() || 'beginner'}">
+                    ${scenario.difficulty || 'Beginner'}
+                </div>
+            </div>
+            <div class="scenario-description">
+                <p>${scenario.description}</p>
+            </div>
+            <div class="scenario-details">
+                <div class="detail-item">
+                    <label>Table Limits:</label>
+                    <span>$${scenario.tableLimits?.min || scenario.minBet} - $${scenario.tableLimits?.max || scenario.maxBet}</span>
+                </div>
+        `;
+        
+        // Add scenario-specific information
+        if (scenario.heatFactor) {
+            enhancedInfo += `
+                <div class="detail-item heat-warning">
+                    <label>Heat Level:</label>
+                    <div class="heat-meter">
+                        <div class="heat-fill" style="width: ${scenario.heatFactor * 100}%"></div>
+                    </div>
+                    <span>${Math.round(scenario.heatFactor * 100)}%</span>
+                </div>
+            `;
+        }
+        
+        if (scenario.riskOfRuin) {
+            enhancedInfo += `
+                <div class="detail-item risk-warning">
+                    <label>Risk of Ruin:</label>
+                    <span class="risk-percentage">${Math.round(scenario.riskOfRuin)}%</span>
+                </div>
+            `;
+        }
+        
+        if (scenario.previousLosses) {
+            enhancedInfo += `
+                <div class="detail-item loss-info">
+                    <label>Previous Losses:</label>
+                    <span>$${Math.round(scenario.previousLosses).toLocaleString()} over ${scenario.sessionCount} sessions</span>
+                </div>
+            `;
+        }
+        
+        if (scenario.pitBossPresent) {
+            enhancedInfo += `
+                <div class="detail-item warning">
+                    <label>⚠️ Pit Boss Present:</label>
+                    <span>Extra camouflage required</span>
+                </div>
+            `;
+        }
+        
+        enhancedInfo += `
+            </div>
+            <div class="betting-guidelines">
+                <h5>Key Considerations:</h5>
+                <ul>
+                    ${this.generateBettingGuidelines(scenario)}
+                </ul>
+            </div>
+        `;
+        
+        infoPanel.innerHTML = enhancedInfo;
+    }
+
+    generateBettingGuidelines(scenario) {
+        const guidelines = [];
+        
+        switch(scenario.type) {
+            case 'basic_bet_sizing':
+                guidelines.push('Use standard TC to betting unit conversion');
+                guidelines.push('Bet 1 unit per true count above +1');
+                break;
+                
+            case 'high_count_opportunity':
+                guidelines.push('Maximize profit - rare opportunity');
+                guidelines.push('Consider heat management with large bets');
+                guidelines.push('May justify maximum table bet');
+                break;
+                
+            case 'negative_count_preservation':
+                guidelines.push('Minimize losses with minimum bets');
+                guidelines.push('Consider leaving table if count stays negative');
+                guidelines.push('Preserve bankroll for positive opportunities');
+                break;
+                
+            case 'heat_management':
+                guidelines.push('Balance profit with camouflage');
+                guidelines.push('Consider smaller bet spread');
+                guidelines.push('Avoid obvious counting patterns');
+                break;
+                
+            case 'variance_recovery':
+                guidelines.push('Conservative betting required');
+                guidelines.push('Reduce normal bet sizes by 25-50%');
+                guidelines.push('Focus on bankroll preservation');
+                break;
+                
+            case 'bankroll_pressure':
+                guidelines.push('Survival mode - extreme caution');
+                guidelines.push('Consider stopping play if bet would exceed 5% of bankroll');
+                guidelines.push('May need to find lower limit table');
+                break;
+                
+            default:
+                guidelines.push('Apply standard betting principles');
+                guidelines.push('Consider all risk factors');
+        }
+        
+        return guidelines.map(g => `<li>${g}</li>`).join('');
     }
 
     placeBet() {
