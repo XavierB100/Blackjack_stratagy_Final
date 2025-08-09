@@ -3,6 +3,8 @@
  * Extracted from GameController.js for better organization
  */
 
+import { Hand } from '../modules/Hand.js';
+
 export class ActionHandler {
     constructor(gameState, deck, ui, statistics, rules, cardCounting) {
         this.gameState = gameState;
@@ -201,7 +203,6 @@ export class ActionHandler {
             originalHand.isSplit = true;
             
             // Create new hand with the second card
-            const { Hand } = await import('../modules/Hand.js');
             const newHand = new Hand();
             newHand.addCard(cardToMove);
             newHand.isSplit = true;
@@ -420,28 +421,26 @@ export class ActionHandler {
      * Save current game state for undo functionality
      */
     saveActionState(action) {
-        if (!this.gameState.canUndoAction()) {
-            const actionState = {
-                action,
-                handIndex: this.currentHandIndex,
-                playerHands: this.playerHands.map(hand => ({ 
-                    cards: [...hand.cards],
-                    value: hand.getValue(),
-                    isDoubled: hand.isDoubled,
-                    isSplit: hand.isSplit
-                })),
-                dealerHand: {
-                    cards: [...this.dealerHand.cards],
-                    value: this.dealerHand.getValue()
-                },
-                currentBet: this.gameState.getCurrentBet(),
-                insuranceBet: this.gameState.getInsuranceBet(),
-                timestamp: Date.now()
-            };
-            
-            this.gameState.saveGameState(action);
-            this.actionHistory.push(actionState);
-        }
+        const actionState = {
+            action,
+            handIndex: this.currentHandIndex,
+            playerHands: this.playerHands.map(hand => ({ 
+                cards: [...hand.cards],
+                value: hand.getValue(),
+                isDoubled: hand.isDoubled,
+                isSplit: hand.isSplit
+            })),
+            dealerHand: {
+                cards: [...this.dealerHand.cards],
+                value: this.dealerHand.getValue()
+            },
+            currentBet: this.gameState.getCurrentBet(),
+            insuranceBet: this.gameState.getInsuranceBet(),
+            timestamp: Date.now()
+        };
+        this.gameState.saveGameState(action);
+        this.actionHistory.push(actionState);
+        if (this.actionHistory.length > 10) this.actionHistory.shift();
     }
 
     /**

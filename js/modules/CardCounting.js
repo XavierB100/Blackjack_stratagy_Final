@@ -218,6 +218,16 @@ export class CardCounting {
     }
 
     /**
+     * Update decks remaining (from Deck) for true count calc
+     */
+    updateDecksRemaining(decksRemaining) {
+        if (typeof decksRemaining === 'number' && decksRemaining > 0) {
+            this.decksRemaining = decksRemaining;
+            this.calculateTrueCount();
+        }
+    }
+
+    /**
      * Get betting recommendation based on true count
      */
     getBettingRecommendation(baseBet = 25, bankroll = 1000, riskLevel = 'moderate') {

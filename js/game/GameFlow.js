@@ -3,6 +3,8 @@
  * Extracted from GameController.js for better organization
  */
 
+import { Hand } from '../modules/Hand.js';
+
 export class GameFlow {
     constructor(gameState, deck, ui, statistics, rules, cardCounting) {
         this.gameState = gameState;
@@ -128,6 +130,15 @@ export class GameFlow {
             await this.dealCardToDealer(true); // Face up
             await this.delay(200);
             
+            // Show dealer visible total (face-up card only)
+            try {
+                const upCard = this.dealerHand.cards[1];
+                const visibleTotal = upCard ? upCard.value : '';
+                this.ui.updateDealerTotal(visibleTotal, false);
+            } catch (_) {
+                this.ui.updateDealerTotal('', false);
+            }
+
             this.ui.hideLoadingOverlay();
             this.isFlowActive = false;
         } catch (error) {
@@ -444,8 +455,10 @@ export class GameFlow {
      * Handle player action through action handler
      */
     async handlePlayerAction(action) {
-        // This will be called by external action handler
-        // Return values: 'continue', 'complete', 'bust', 'error'
+        // Delegate to ActionHandler if available via controller-like interface
+        if (typeof this.actionHandler?.executeAction === 'function') {
+            return await this.actionHandler.executeAction(action);
+        }
         return 'continue';
     }
 
@@ -621,7 +634,9 @@ export class GameFlow {
             this.ui.highlightCardForCounting(cardElement, this.cardCounting.getHiLoValue(card));
         }
         
-        if (faceUp) {
+        if (faceUp && !this.dealerHand || (faceUp && this.dealerHand.cards.length <= 2)) {
+            // During initial deal, the visible total is managed elsewhere
+        } else if (faceUp) {
             this.updateDealerTotal();
         }
         
@@ -643,7 +658,7 @@ export class GameFlow {
      */
     canDoubleDown() {
         const hand = this.playerHands[this.currentHandIndex];
-        return this.rules.canDoubleDown(hand, this.gameState.getCurrentBet(), this.statistics.getBankAmount());
+        return this.rules.canDoubleDown(hand);
     }
 
     /**
@@ -651,7 +666,7 @@ export class GameFlow {
      */
     canSplit() {
         const hand = this.playerHands[this.currentHandIndex];
-        return this.rules.canSplit(hand, this.gameState.getCurrentBet(), this.statistics.getBankAmount());
+        return this.rules.canSplit(hand, this.playerHands.length);
     }
 
     /**
@@ -706,7 +721,6 @@ export class GameFlow {
      * Reset hands for new game
      */
     resetHands() {
-        const { Hand } = require('../modules/Hand.js');
         this.dealerHand = new Hand();
         this.playerHands = [new Hand()];
         this.currentHandIndex = 0;
